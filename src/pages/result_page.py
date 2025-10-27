@@ -1,106 +1,127 @@
-"""
-result_page.py
----------------
-
-This page presents the final classification result to the user.  It
-displays the original image with the segmentation overlay, shows the
-predicted clothing category along with the associated confidence score,
-and offers the option to return to the start page to analyse another
-outfit.
-"""
-
 from __future__ import annotations
-
 import streamlit as st
-
+from PIL import Image
 
 def render() -> str | None:
-    """
-    Render the result page and return the next page id when done.
-
-    This page presents the final classification and style prediction to
-    the user.  It displays the face‑masked segmentation overlay, the
-    predicted garment category and the high‑level style along with
-    confidence scores.  It also provides an option to start over.
-    """
-    st.header("Fashion Police verdict")
-
-    # Retrieve the data saved by the loader page.  We expect the
-    # overlay image, classification label and score, and style
-    # prediction to be present in the session state.  If any are
-    # missing, instruct the user to restart.
-    overlay = st.session_state.get("overlay_preview_image")
-    garment_label = st.session_state.get("classification_label")
-    garment_score = st.session_state.get("classification_score")
-    style = st.session_state.get("predicted_style")
-    style_score = st.session_state.get("predicted_style_score")
-    if any(x is None for x in [overlay, garment_label, garment_score, style, style_score]):
-        st.error(
-            "Required data missing. Please start over by returning to the start page."
-        )
-        if st.button("🔙 Back to start"):
-            # Clear all known keys to ensure a fresh start.
+    # Check required session data
+    if "evidence_image" not in st.session_state or "ranked_styles" not in st.session_state:
+        st.error("Missing results. Please start over.")
+        if st.button("⬅ Back to start"):
+            # clean slate
             for k in [
+                "classification_done",
+                "evidence_image",
+                "ranked_styles",
                 "original_image_for_classification",
                 "overlay_preview_image",
                 "segmentation_mask",
                 "clothing_crop",
-                "classification_label",
-                "classification_score",
-                "predicted_style",
-                "predicted_style_score",
             ]:
                 st.session_state.pop(k, None)
-            # Also remove the classifier so it can be re‑initialised.
-            st.session_state.pop("classifier", None)
-            return "start_page"
+            st.session_state.page = "start_page"
+            st.rerun()
         return None
 
-    # Display the segmentation overlay.  We use ``width="stretch"``
-    # instead of the deprecated ``use_container_width``.  The caption
-    # explains that the face has been masked for fairness.
-    st.image(
-        overlay,
-        caption="Detected clothing highlighted (face masked for fairness)",
-        width="stretch",
-    )
+    evidence_image = st.session_state["evidence_image"]
+    ranked_styles = st.session_state["ranked_styles"]
 
-    # Present the garment classification and style prediction.  We
-    # emphasise the style since it is the main result.  Confidence
-    # scores are displayed as percentages for readability.
-    st.markdown(
-        f"### 📌 Predicted garment:\n"
-        f"<span style='font-size:1.5rem;font-weight:600'>{garment_label}</span><br>"
-        f"Confidence: {garment_score * 100:.1f}%",
-        unsafe_allow_html=True,
-    )
+    # pick top 3 styles for display
+    top3 = ranked_styles[:3]
 
-    st.markdown(
-        f"### 🎨 Style verdict:\n"
-        f"<span style='font-size:2rem;font-weight:700;color:#ff4d4f'>{style}</span><br>"
-        f"Confidence: {style_score * 100:.1f}%",
-        unsafe_allow_html=True,
-    )
+    # Layout: two columns
+    st.markdown("<div style='max-width:1100px; margin:0 auto;'>", unsafe_allow_html=True)
+    left_col, right_col = st.columns([1,1], gap="large")
 
-    st.write(
-        "The style prediction is based on the detected garments and the overall look. "
-        "Results may vary depending on lighting, pose and how much of the outfit is visible."
-    )
+    with left_col:
+        st.markdown(
+            "<div style='font-weight:600; font-size:1.1rem; margin-bottom:0.5rem;'>Evidence photo 👇</div>",
+            unsafe_allow_html=True,
+        )
+        st.image(
+            evidence_image,
+            caption="We focused on your clothing when predicting style.",
+            use_column_width=True,
+        )
 
-    # Provide a button to restart the process.  Reset all relevant
-    # session state keys so the user can take a new photo.
-    if st.button("🔁 Analyze another outfit"):
-        for k in [
-            "original_image_for_classification",
-            "overlay_preview_image",
-            "segmentation_mask",
-            "clothing_crop",
-            "classification_label",
-            "classification_score",
-            "predicted_style",
-            "predicted_style_score",
-        ]:
-            st.session_state.pop(k, None)
-        st.session_state.pop("classifier", None)
-        return "start_page"
+        # Optionally: let them restart
+        if st.button("🔄 Try another outfit", use_container_width=True):
+            # reset app state for a new run
+            for k in [
+                "classification_done",
+                "evidence_image",
+                "ranked_styles",
+                "original_image_for_classification",
+                "overlay_preview_image",
+                "segmentation_mask",
+                "clothing_crop",
+            ]:
+                st.session_state.pop(k, None)
+            st.session_state.page = "make_picture_page"
+            st.rerun()
+
+    with right_col:
+        st.markdown(
+            "<div style='font-weight:600; font-size:1.1rem; margin-bottom:0.5rem;'>Your style vibe ✨</div>",
+            unsafe_allow_html=True,
+        )
+
+        if len(top3) > 0:
+            # Biggest / winner card
+            best = top3[0]
+            st.markdown(
+                f"""
+                <div style="
+                    border:1px solid rgba(255,255,255,0.2);
+                    border-radius:8px;
+                    padding:0.75rem 1rem;
+                    margin-bottom:1rem;
+                    background:rgba(255,255,255,0.05);
+                ">
+                    <div style="font-size:0.8rem; color:#aaa;">Top match</div>
+                    <div style="font-size:1.3rem; font-weight:600; margin:0.25rem 0 0.5rem 0;">
+                        {best["name"]}
+                    </div>
+                    <div style="font-size:0.9rem; color:#ccc; margin-bottom:0.5rem;">
+                        {best["desc"]}
+                    </div>
+                    <div style="font-size:0.8rem; color:#888;">
+                        Match strength: {(best["score"]*100):.1f}%
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        # Runner-ups
+        if len(top3) > 1:
+            st.markdown(
+                "<div style='font-size:0.8rem; font-weight:600; color:#aaa; margin-bottom:0.5rem;'>Also similar:</div>",
+                unsafe_allow_html=True,
+            )
+
+        for alt in top3[1:]:
+            st.markdown(
+                f"""
+                <div style="
+                    border:1px solid rgba(255,255,255,0.15);
+                    border-radius:6px;
+                    padding:0.5rem 0.75rem;
+                    margin-bottom:0.5rem;
+                    background:rgba(255,255,255,0.02);
+                ">
+                    <div style="font-size:1rem; font-weight:600; margin-bottom:0.25rem;">
+                        {alt["name"]}
+                    </div>
+                    <div style="font-size:0.8rem; color:#ccc; margin-bottom:0.25rem;">
+                        {alt["desc"]}
+                    </div>
+                    <div style="font-size:0.7rem; color:#888;">
+                        Match strength: {(alt["score"]*100):.1f}%
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("</div>", unsafe_allow_html=True)
     return None

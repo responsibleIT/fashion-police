@@ -1,49 +1,112 @@
-from transformers import CLIPProcessor, CLIPModel
+from __future__ import annotations
+
+from typing import List, Dict
 import torch
 from PIL import Image
+from transformers import CLIPProcessor, CLIPModel
+
 
 class StylePredictor:
     def __init__(self):
+        # FashionCLIP: CLIP tuned for fashion semantics
         self.model = CLIPModel.from_pretrained("patrickjohncyh/fashion-clip")
         self.processor = CLIPProcessor.from_pretrained("patrickjohncyh/fashion-clip")
+
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
 
-        # Predefined style prompts
-        self.styles = {
-            "Urban Streetwear": "A casual streetwear outfit with sneakers and hoodies.",
-            "Formal Business": "A formal outfit with suits, ties, and dress shoes.",
-            "Vintage": "A retro, vintage outfit with classic cuts and faded tones.",
-            "Bohemian": "A boho-style outfit with loose, patterned fabrics and earthy colors.",
-            "Casual Chic": "A simple, modern outfit that's stylish yet relaxed.",
-            "Sporty": "An athletic outfit with sportswear and sneakers.",
-            "Elegant Evening": "A sophisticated evening outfit with dresses or tuxedos.",
-            "Punk Rock": "An edgy outfit with leather jackets, band tees, and bold accessories.",
-            "Preppy": "A polished, neat, and traditional style inspired by American East Coast college-prep schools.",
-            "Gothic": "A dark, mysterious outfit with black clothing and dramatic accessories.",
-            "Artsy": "A creative outfit with bold colors, patterns, and artistic influences."
+        # Style prompts (your "vibes")
+        # NOTE: keep these short-ish, but still descriptive of the vibe.
+        self.styles: Dict[str, str] = {
+            "Urban Streetwear": (
+                "Casual streetwear outfit with hoodies, relaxed fit, sneakers, sporty energy."
+            ),
+            "Formal Business": (
+                "Formal business outfit with tailored blazer, collared shirt, suit trousers and dress shoes."
+            ),
+            "Casual Chic": (
+                "Clean modern casual outfit: simple basics styled in a polished way, effortless but intentional."
+            ),
+            "Sporty / Athleisure": (
+                "Athletic activewear look: sportswear, gym-ready vibe, performance fabrics, sneakers."
+            ),
+            "Vintage / Retro": (
+                "Retro vintage outfit using classic cuts, muted or faded colors, thrift-store aesthetic."
+            ),
+            "Bohemian": (
+                "Boho outfit with loose patterned fabrics, flowy layers and earthy tones."
+            ),
+            "Elegant Evening": (
+                "Refined night-out look with sleek silhouettes, dressy pieces, going-out energy."
+            ),
+            "Preppy": (
+                "Polished collegiate style: neat, coordinated layers, structured and tidy."
+            ),
+            "Punk / Alt": (
+                "Alternative edgy outfit with darker tones, maybe leather or band tee energy."
+            ),
+            "Gothic": (
+                "Dark aesthetic with mostly black clothing and dramatic mood."
+            ),
+            "Artsy / Expressive": (
+                "Creative expressive outfit with bold colors, interesting textures, standout shapes."
+            ),
         }
 
-    def predict(self, image: Image.Image):
-        """Return predicted style name, score, and top description."""
-        # Encode the image
+    def _embed_image(self, image: Image.Image) -> torch.Tensor:
+        """
+        Return normalized image embedding for the ORIGINAL image.
+        We do NOT mask the face before embedding, per your request.
+        """
         inputs = self.processor(images=image, return_tensors="pt").to(self.device)
         with torch.no_grad():
-            image_emb = self.model.get_image_features(**inputs)
-        image_emb /= image_emb.norm(p=2)
+            img_emb = self.model.get_image_features(**inputs)
+        img_emb = img_emb / img_emb.norm(p=2, dim=-1, keepdim=True)
+        return img_emb  # shape (1, D)
 
-        # Encode style text prompts
+    def _embed_text_list(self, texts: List[str]) -> torch.Tensor:
+        """
+        Return normalized text embeddings for style descriptions.
+        """
         text_inputs = self.processor(
-            text=list(self.styles.values()), return_tensors="pt", padding=True
+            text=texts, return_tensors="pt", padding=True
         ).to(self.device)
         with torch.no_grad():
-            text_emb = self.model.get_text_features(**text_inputs)
-        text_emb /= text_emb.norm(p=2)
+            txt_emb = self.model.get_text_features(**text_inputs)
+        txt_emb = txt_emb / txt_emb.norm(p=2, dim=-1, keepdim=True)
+        return txt_emb  # shape (N, D)
 
-        # Compute cosine similarity
-        sims = (image_emb @ text_emb.T).squeeze(0)
-        best_idx = int(torch.argmax(sims))
-        best_style = list(self.styles.keys())[best_idx]
-        best_score = float(sims[best_idx].cpu())
+    def predict(self, original_image: Image.Image) -> List[Dict[str, float]]:
+        """
+        Compare the ORIGINAL image with each style description.
+        Return a ranked list of style candidates.
 
-        return best_style, best_score, list(self.styles.values())[best_idx]
+        Output format:
+        [
+          {"name": "Urban Streetwear", "score": 0.82, "desc": "Casual streetwear outfit ..."},
+          {"name": "Casual Chic", "score": 0.77, "desc": "Clean modern casual outfit ..."},
+          ...
+        ]
+        """
+        # 1. Embed the outfit photo (original, unmasked)
+        img_emb = self._embed_image(original_image)
+
+        # 2. Embed each style description
+        style_texts = list(self.styles.values())
+        style_names = list(self.styles.keys())
+        text_emb = self._embed_text_list(style_texts)  # (N, D)
+
+        # 3. Cosine similarity = dot product because both are normalized
+        sims = (img_emb @ text_emb.T).squeeze(0).detach().cpu()  # shape (N,)
+
+        # 4. Build ranked list
+        ranked = []
+        for i, name in enumerate(style_names):
+            ranked.append({
+                "name": name,
+                "score": float(sims[i]),      # similarity strength
+                "desc": self.styles[name],    # keep description for UI
+            })
+
+        ranked.sort(key=lambda x: x["score"], reverse=True)
+        return ranked
