@@ -10,8 +10,7 @@ def render() -> str | None:
         st.error("No photo found in session. Please go back and take a picture.")
         if st.button("⬅ Back to start"):
             st.session_state.page = "start_page"
-            st.rerun()
-        return None
+            return
 
     image = st.session_state["original_image_for_classification"]
 
@@ -29,8 +28,7 @@ def render() -> str | None:
 
             # jump to result_page
             st.session_state.page = "result_page"
-            st.rerun()
-            return None
+            return
 
         except Exception as e:
             st.error(f"Classification failed: {e}")

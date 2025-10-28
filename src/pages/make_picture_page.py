@@ -9,6 +9,7 @@ from PIL import Image
 from scripts.make_picture import uploaded_file_to_image
 from scripts.load_model import SegmentationModel
 
+
 def _pil_to_bytes(img: Image.Image) -> bytes:
     buf = BytesIO()
     img.save(buf, format="PNG")
@@ -25,20 +26,58 @@ def _clear_capture_state():
         "clothing_crop",
     ]:
         st.session_state.pop(key, None)
-    st.session_state.pop("camera", None)  # reset the camera widget value
+    # reset camera widget content so they can re-capture
+    st.session_state.pop("camera", None)
 
 
-def render() -> str | None:
-    # --- Cache/load the segmentation model once ---
+def render() -> None:
+    # -------- Instructions header --------
+    st.markdown(
+        """
+        <div style="
+            max-width:1100px;
+            margin:0 auto 1rem auto;
+            font-size:0.9rem;
+            line-height:1.4;
+        ">
+            <ol style="margin:0; padding-left:1.2rem; color:#ccc;">
+                <li>Take a photo of your outfit.</li>
+                <li>We'll highlight the clothing areas (face will be hidden later for fairness).</li>
+                <li>Press <b>Continue</b> to analyze your style.</li>
+            </ol>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # -------- Style tweaks so the camera & preview fill their columns nicely --------
+    st.markdown(
+        """
+        <style>
+        /* Keep the camera widget from exploding vertically, but allow width to fill column */
+        div[data-testid="stCameraInput"] video,
+        div[data-testid="stCameraInput"] canvas {
+            max-height: 400px !important;
+            width: 100% !important;
+            object-fit: cover !important;
+        }
+        div[data-testid="stCameraInput"] > div {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # -------- Lazy-load (cache-ish) segmentation model in session --------
     if "seg_model" not in st.session_state:
         st.session_state.seg_model = SegmentationModel()
     seg_model: SegmentationModel = st.session_state.seg_model
 
-    # --- Outer wrapper with fixed max width so content is centered ---
+    # -------- Two columns, side by side --------
     st.markdown("<div style='max-width:1100px; margin:0 auto;'>", unsafe_allow_html=True)
-
-    # Side-by-side columns that match your paint sketch
-    col_left, col_right = st.columns([1, 1], gap="large")
+    col_left, col_right = st.columns(2, gap="large")
 
     # ================= LEFT COLUMN =================
     with col_left:
@@ -47,16 +86,17 @@ def render() -> str | None:
             unsafe_allow_html=True,
         )
 
+        # live camera widget
         captured_file = st.camera_input(
             label="Take a photo",
-            label_visibility="collapsed",  # avoids empty-label warnings
+            label_visibility="collapsed",
             key="camera",
-            help="Frame your outfit clearly, then click 'Take photo'.",
+            help="Line up your outfit and click 'Take photo'.",
         )
 
         captured_img: Optional[Image.Image] = uploaded_file_to_image(captured_file)
 
-        # If we just captured a new image, run segmentation once and stash state
+        # Process new capture once
         if captured_img is not None:
             img_bytes = _pil_to_bytes(captured_img)
             if st.session_state.get("_last_capture_bytes") != img_bytes:
@@ -72,24 +112,16 @@ def render() -> str | None:
                 except Exception as e:
                     st.error(f"Failed to segment image: {e}")
 
-        # # Show the final still image we'll use downstream
-        # if st.session_state.get("original_image_for_classification") is not None:
-        #     st.image(
-        #         st.session_state["original_image_for_classification"],
-        #         caption="Captured photo",
-        #         width=TARGET_DISPLAY_WIDTH,
-        #     )
-        # else:
-        #     st.info(
-        #         "Take a photo above. We'll show it here.",
-        #         icon="📷",
-        #     )
-
-        # Retake button under LEFT column
+        # Retake / Clear button under LEFT column
         retake_disabled = st.session_state.get("original_image_for_classification") is None
-        if st.button("🔄 Retake", disabled=retake_disabled, use_container_width=True):
+        if st.button(
+            "❌ Clear photo",
+            disabled=retake_disabled,
+            use_container_width=True,
+        ):
             _clear_capture_state()
-            st.rerun()
+            st.session_state.page = "make_picture_page"
+            return  # app.py will rerun after this
 
     # ================= RIGHT COLUMN =================
     with col_right:
@@ -98,31 +130,30 @@ def render() -> str | None:
             unsafe_allow_html=True,
         )
 
-        if st.session_state.get("overlay_preview_image") is not None:
+        overlay_img = st.session_state.get("overlay_preview_image")
+
+        if overlay_img is not None:
             st.image(
-                st.session_state["overlay_preview_image"],
-                caption="Detected clothing regions",
-                width="content",
+                overlay_img,
+                use_column_width=True,  # <-- fill the right column width
             )
         else:
             st.info(
-                "After you snap a photo, we'll highlight just the clothing here.",
+                "After you take a photo, we'll highlight only the clothing here.",
                 icon="✨",
             )
 
         # Continue button under RIGHT column
-        can_continue = st.session_state.get("overlay_preview_image") is not None
+        can_continue = overlay_img is not None
         if st.button(
             "✅ Continue",
             disabled=not can_continue,
             use_container_width=True,
         ):
+            # go to loader page; loader_page will do style prediction
             st.session_state.page = "loader_page"
-            st.rerun()
+            return  # app.py reruns
 
-    # Close wrapper
     st.markdown("</div>", unsafe_allow_html=True)
-
-    # Critically, DO NOT render anything else below this point.
-    # That prevents new rows from pushing content off-screen.
-    return None
+    # IMPORTANT: no st.rerun() in this function; app.py handles reruns.
+    return

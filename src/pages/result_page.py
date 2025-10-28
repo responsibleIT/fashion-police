@@ -19,7 +19,6 @@ def render() -> str | None:
             ]:
                 st.session_state.pop(k, None)
             st.session_state.page = "start_page"
-            st.rerun()
         return None
 
     evidence_image = st.session_state["evidence_image"]
@@ -57,7 +56,7 @@ def render() -> str | None:
             ]:
                 st.session_state.pop(k, None)
             st.session_state.page = "make_picture_page"
-            st.rerun()
+            return
 
     with right_col:
         st.markdown(
