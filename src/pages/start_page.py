@@ -3,7 +3,7 @@ import streamlit as st
 def render() -> None:
     st.markdown(
         """
-        <div style="text-align:center; max-width:800px; margin:4rem auto 2rem auto;">
+        <div style="text-align:center; margin:4rem auto 2rem auto;">
             <div style="font-size:1.5rem; font-weight:600;">
                 👮 Fashion Police
             </div>

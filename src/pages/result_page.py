@@ -28,7 +28,6 @@ def render() -> str | None:
     top3 = ranked_styles[:3]
 
     # Layout: two columns
-    st.markdown("<div style='max-width:1100px; margin:0 auto;'>", unsafe_allow_html=True)
     left_col, right_col = st.columns([1,1], gap="large")
 
     with left_col:

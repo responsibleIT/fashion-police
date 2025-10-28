@@ -31,25 +31,6 @@ def _clear_capture_state():
 
 
 def render() -> None:
-    # -------- Instructions header --------
-    st.markdown(
-        """
-        <div style="
-            max-width:1100px;
-            margin:0 auto 1rem auto;
-            font-size:0.9rem;
-            line-height:1.4;
-        ">
-            <ol style="margin:0; padding-left:1.2rem; color:#ccc;">
-                <li>Take a photo of your outfit.</li>
-                <li>We'll highlight the clothing areas (face will be hidden later for fairness).</li>
-                <li>Press <b>Continue</b> to analyze your style.</li>
-            </ol>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
     # -------- Style tweaks so the camera & preview fill their columns nicely --------
     st.markdown(
         """
@@ -76,7 +57,7 @@ def render() -> None:
     seg_model: SegmentationModel = st.session_state.seg_model
 
     # -------- Two columns, side by side --------
-    st.markdown("<div style='max-width:1100px; margin:0 auto;'>", unsafe_allow_html=True)
+    # st.markdown("<div style='max-width:1100px; margin:0 auto;'>", unsafe_allow_html=True)
     col_left, col_right = st.columns(2, gap="large")
 
     # ================= LEFT COLUMN =================
@@ -154,6 +135,6 @@ def render() -> None:
             st.session_state.page = "loader_page"
             return  # app.py reruns
 
-    st.markdown("</div>", unsafe_allow_html=True)
+    # st.markdown("</div>", unsafe_allow_html=True)
     # IMPORTANT: no st.rerun() in this function; app.py handles reruns.
     return
