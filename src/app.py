@@ -1,14 +1,18 @@
 import streamlit as st
-from pages import start_page, make_picture_page, loader_page, result_page
+from pages import start_page, make_picture_page, loader_page, result_page, correct_me_page
 
 PAGES = {
     "start_page": start_page.render,
     "make_picture_page": make_picture_page.render,
     "loader_page": loader_page.render,
     "result_page": result_page.render,
+    "correct_me_page": correct_me_page.render,
 }
 
 def main():
+    # Configure page to use wide mode
+    st.set_page_config(layout="wide")
+    
     # 1. init session_state.page
     if "page" not in st.session_state:
         st.session_state.page = "start_page"

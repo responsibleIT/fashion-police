@@ -1,6 +1,7 @@
 from __future__ import annotations
 import streamlit as st
 from PIL import Image
+from scripts.data_storage import DataStorage
 
 def render() -> str | None:
     # Check required session data
@@ -23,6 +24,23 @@ def render() -> str | None:
 
     evidence_image = st.session_state["evidence_image"]
     ranked_styles = st.session_state["ranked_styles"]
+    segmentation_mask = st.session_state.get("segmentation_mask")
+
+    # Save data to storage (only once per classification)
+    if "current_record_id" not in st.session_state:
+        storage = DataStorage()
+        top_prediction = ranked_styles[0]
+        record_id = storage.save_classification(
+            image=evidence_image,
+            system_guess=top_prediction["name"],
+            system_confidence=top_prediction["score"],
+            all_predictions=[
+                {"name": s["name"], "score": s["score"]} 
+                for s in ranked_styles
+            ],
+            mask=segmentation_mask  # Pass mask for anonymization
+        )
+        st.session_state["current_record_id"] = record_id
 
     # pick top 3 styles for display
     top3 = ranked_styles[:3]
@@ -52,6 +70,7 @@ def render() -> str | None:
                 "overlay_preview_image",
                 "segmentation_mask",
                 "clothing_crop",
+                "current_record_id",
             ]:
                 st.session_state.pop(k, None)
             st.session_state.page = "make_picture_page"
@@ -120,6 +139,11 @@ def render() -> str | None:
                 """,
                 unsafe_allow_html=True,
             )
+
+        # Button to navigate to correction page
+        if st.button("❓ Correct me if I am wrong", use_container_width=True):
+            st.session_state.page = "correct_me_page"
+            return
 
     st.markdown("</div>", unsafe_allow_html=True)
     return None

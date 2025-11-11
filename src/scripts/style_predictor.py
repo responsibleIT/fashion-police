@@ -5,6 +5,8 @@ import torch
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel
 
+from data.styles import STYLES
+
 
 class StylePredictor:
     def __init__(self):
@@ -15,43 +17,8 @@ class StylePredictor:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model.to(self.device)
 
-        # Style prompts (your "vibes")
-        # NOTE: keep these short-ish, but still descriptive of the vibe.
-        self.styles: Dict[str, str] = {
-            "Urban Streetwear": (
-                "Casual streetwear outfit with hoodies, relaxed fit, sneakers, sporty energy."
-            ),
-            "Formal Business": (
-                "Formal business outfit with tailored blazer, collared shirt, suit trousers and dress shoes."
-            ),
-            "Casual Chic": (
-                "Clean modern casual outfit: simple basics styled in a polished way, effortless but intentional."
-            ),
-            "Sporty / Athleisure": (
-                "Athletic activewear look: sportswear, gym-ready vibe, performance fabrics, sneakers."
-            ),
-            "Vintage / Retro": (
-                "Retro vintage outfit using classic cuts, muted or faded colors, thrift-store aesthetic."
-            ),
-            "Bohemian": (
-                "Boho outfit with loose patterned fabrics, flowy layers and earthy tones."
-            ),
-            "Elegant Evening": (
-                "Refined night-out look with sleek silhouettes, dressy pieces, going-out energy."
-            ),
-            "Preppy": (
-                "Polished collegiate style: neat, coordinated layers, structured and tidy."
-            ),
-            "Punk / Alt": (
-                "Alternative edgy outfit with darker tones, maybe leather or band tee energy."
-            ),
-            "Gothic": (
-                "Dark aesthetic with mostly black clothing and dramatic mood."
-            ),
-            "Artsy / Expressive": (
-                "Creative expressive outfit with bold colors, interesting textures, standout shapes."
-            ),
-        }
+        # Style prompts (your "vibes") - now loaded from central data file
+        self.styles: Dict[str, str] = STYLES
 
     def _embed_image(self, image: Image.Image) -> torch.Tensor:
         """

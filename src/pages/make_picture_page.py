@@ -38,7 +38,7 @@ def render() -> None:
         /* Keep the camera widget from exploding vertically, but allow width to fill column */
         div[data-testid="stCameraInput"] video,
         div[data-testid="stCameraInput"] canvas {
-            max-height: 400px !important;
+            max-height: 1700px !important;
             width: 100% !important;
             object-fit: cover !important;
         }

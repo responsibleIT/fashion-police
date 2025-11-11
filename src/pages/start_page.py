@@ -30,6 +30,20 @@ def render() -> None:
                 type="primary",
                 use_container_width=True,
             ):
+                # Clear all previous session state for a fresh start
+                for k in [
+                    "classification_done",
+                    "evidence_image",
+                    "ranked_styles",
+                    "original_image_for_classification",
+                    "overlay_preview_image",
+                    "segmentation_mask",
+                    "clothing_crop",
+                    "current_record_id",
+                    "user_selected_style",
+                    "_last_capture_bytes",
+                ]:
+                    st.session_state.pop(k, None)
                 # set the next page
                 st.session_state.page = "make_picture_page"
                 # DO NOT st.rerun() here. app.py will detect the change and rerun cleanly.
