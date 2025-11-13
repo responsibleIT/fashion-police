@@ -152,15 +152,29 @@
                     stream.getTracks().forEach(track => track.stop());
                 }
 
-                stream = await navigator.mediaDevices.getUserMedia({ 
+                const constraints = { 
                     video: { 
                         width: { ideal: 1280 },
                         height: { ideal: 720 },
                         facingMode: 'user'
-                    } 
-                });
+                    },
+                    audio: false
+                };
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
                 
+                // Set video source and wait for it to load
                 video.srcObject = stream;
+                
+                // Make sure video plays and stays playing
+                video.onloadedmetadata = () => {
+                    video.play();
+                };
+                
+                // Keep video playing (prevents auto-pause)
+                video.setAttribute('autoplay', '');
+                video.setAttribute('playsinline', '');
+                
                 video.style.display = 'block';
                 preview.style.display = 'none';
                 
@@ -170,6 +184,8 @@
                 document.getElementById('analyze').style.display = 'none';
                 
                 showStatus('Camera ready! Position yourself and click Capture.', 'info');
+                
+                console.log('Camera started successfully');
             } catch (error) {
                 alert('Error accessing camera: ' + error.message);
                 console.error('Camera error:', error);
@@ -250,8 +266,49 @@
             document.getElementById('status').style.display = 'none';
         }
 
+        // Prevent video from pausing
+        video.addEventListener('pause', (e) => {
+            if (stream && video.srcObject) {
+                console.log('Video paused, restarting...');
+                video.play();
+            }
+        });
+
+        // Monitor stream health
+        setInterval(() => {
+            if (stream && video.srcObject && video.style.display === 'block') {
+                const tracks = stream.getVideoTracks();
+                if (tracks.length > 0 && tracks[0].readyState === 'live') {
+                    // Stream is healthy
+                    if (video.paused) {
+                        console.log('Video paused unexpectedly, resuming...');
+                        video.play();
+                    }
+                } else {
+                    console.error('Stream died, restarting camera...');
+                    startCamera();
+                }
+            }
+        }, 1000); // Check every second
+
         // Auto-start camera on page load
-        window.addEventListener('load', startCamera);
+        window.addEventListener('load', () => {
+            setTimeout(startCamera, 500); // Small delay for reliability
+        });
+
+        // Prevent page from going to sleep
+        if ('wakeLock' in navigator) {
+            let wakeLock = null;
+            async function requestWakeLock() {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Wake lock acquired');
+                } catch (err) {
+                    console.log('Wake lock error:', err);
+                }
+            }
+            requestWakeLock();
+        }
     </script>
 </body>
 </html>
