@@ -135,6 +135,7 @@
             <button id="capture" class="btn-success" onclick="capturePhoto()" style="display:none;">📸 Capture Photo</button>
             <button id="retake" class="btn-secondary" onclick="retakePhoto()" style="display:none;">🔄 Retake</button>
             <button id="analyze" class="btn-success" onclick="analyzePhoto()" style="display:none;">✅ Analyze Style</button>
+            <button class="btn-secondary" onclick="checkDevices()">🔍 Check Camera Devices</button>
         </div>
     </div>
 
@@ -152,16 +153,61 @@
                     stream.getTracks().forEach(track => track.stop());
                 }
 
-                const constraints = { 
-                    video: { 
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        facingMode: 'user'
-                    },
-                    audio: false
-                };
+                // First, enumerate devices to see what's available
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                console.log('Available video devices:', videoDevices);
+                
+                if (videoDevices.length === 0) {
+                    throw new Error('No camera devices found. Please check if your USB webcam is connected.');
+                }
 
-                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                // Try multiple constraint options
+                let constraints;
+                
+                // Try option 1: Simple constraints (most compatible)
+                try {
+                    constraints = { 
+                        video: true,
+                        audio: false
+                    };
+                    
+                    console.log('Trying simple constraints...');
+                    stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    console.log('Success with simple constraints!');
+                } catch (e1) {
+                    console.log('Simple constraints failed:', e1);
+                    
+                    // Try option 2: Specific device
+                    try {
+                        constraints = {
+                            video: {
+                                deviceId: videoDevices[0].deviceId
+                            },
+                            audio: false
+                        };
+                        
+                        console.log('Trying specific device:', videoDevices[0].label);
+                        stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        console.log('Success with specific device!');
+                    } catch (e2) {
+                        console.log('Specific device failed:', e2);
+                        
+                        // Try option 3: Basic video only
+                        constraints = {
+                            video: {
+                                width: 640,
+                                height: 480
+                            },
+                            audio: false
+                        };
+                        
+                        console.log('Trying basic resolution...');
+                        stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        console.log('Success with basic resolution!');
+                    }
+                }
                 
                 // Set video source and wait for it to load
                 video.srcObject = stream;
@@ -187,8 +233,27 @@
                 
                 console.log('Camera started successfully');
             } catch (error) {
-                alert('Error accessing camera: ' + error.message);
                 console.error('Camera error:', error);
+                
+                let errorMsg = 'Error accessing camera: ' + error.message;
+                
+                // Provide helpful troubleshooting
+                if (error.name === 'NotFoundError' || error.message.includes('not be found')) {
+                    errorMsg += '\n\n❌ Camera not found!\n\nTroubleshooting:\n' +
+                              '1. Is your USB webcam plugged in?\n' +
+                              '2. Try unplugging and replugging the camera\n' +
+                              '3. Check if another app is using the camera\n' +
+                              '4. On Pi: Check with "ls /dev/video*"\n' +
+                              '5. Try a different USB port';
+                } else if (error.name === 'NotAllowedError') {
+                    errorMsg += '\n\n❌ Camera permission denied!\n\n' +
+                              'Click the camera icon in your browser\'s address bar and allow access.';
+                } else if (error.name === 'NotReadableError') {
+                    errorMsg += '\n\n❌ Camera is busy!\n\n' +
+                              'Another application might be using the camera. Close other apps and try again.';
+                }
+                
+                alert(errorMsg);
             }
         }
 
@@ -264,6 +329,41 @@
 
         function hideStatus() {
             document.getElementById('status').style.display = 'none';
+        }
+
+        async function checkDevices() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                let message = '📹 Video Devices Found:\n\n';
+                
+                if (videoDevices.length === 0) {
+                    message = '❌ No camera devices detected!\n\n';
+                    message += 'Troubleshooting steps:\n';
+                    message += '1. Check if USB webcam is plugged in\n';
+                    message += '2. Try a different USB port\n';
+                    message += '3. On Raspberry Pi, run: ls /dev/video*\n';
+                    message += '4. Check if camera works in other apps\n';
+                    message += '5. Try rebooting the Pi';
+                } else {
+                    videoDevices.forEach((device, index) => {
+                        message += `${index + 1}. ${device.label || 'Camera ' + (index + 1)}\n`;
+                        message += `   ID: ${device.deviceId.substring(0, 20)}...\n\n`;
+                    });
+                }
+                
+                message += '\nAll devices:\n';
+                devices.forEach(device => {
+                    message += `- ${device.kind}: ${device.label || 'Unknown'}\n`;
+                });
+                
+                alert(message);
+                console.log('All devices:', devices);
+            } catch (error) {
+                alert('Error checking devices: ' + error.message);
+                console.error('Device check error:', error);
+            }
         }
 
         // Prevent video from pausing
