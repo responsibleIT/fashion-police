@@ -11,3 +11,5 @@
     "Gothic": {"description": "Dark gothic aesthetic with black clothing, dramatic makeup, Victorian influences."},
     "Artsy / Expressive": {"description": "Creative artistic outfit with unconventional pieces, bold colors, unique expression."}
 }
+
+STYLE_NAMES = list(STYLES.keys())
