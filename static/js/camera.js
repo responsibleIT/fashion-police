@@ -1,9 +1,13 @@
 // Camera page JavaScript
+
 let video = document.getElementById('video');
 let canvas = document.getElementById('canvas');
 let preview = document.getElementById('preview');
 let stream = null;
 let capturedImage = null;
+let boundingBoxActive = true;
+let detector = null;
+let detectionActive = false;
 
 async function startCamera() {
     try {
@@ -69,27 +73,32 @@ async function startCamera() {
         }
         
         // Set video source and wait for it to load
+
         video.srcObject = stream;
-        
+
         // Make sure video plays and stays playing
-        video.onloadedmetadata = () => {
+        video.onloadedmetadata = async () => {
             video.play();
+            boundingBoxActive = true;
+            await loadMoveNet();
+            detectionActive = true;
+            drawDetectionLoop();
         };
-        
+
         // Keep video playing (prevents auto-pause)
         video.setAttribute('autoplay', '');
         video.setAttribute('playsinline', '');
-        
+
         video.style.display = 'block';
         preview.style.display = 'none';
-        
+
         document.getElementById('start-camera').style.display = 'none';
         document.getElementById('capture').style.display = 'inline-block';
         document.getElementById('retake').style.display = 'none';
         document.getElementById('analyze').style.display = 'none';
-        
-        showStatus('Camera ready! Position yourself and click Capture.', 'info');
-        
+
+        showStatus('Camera ready! Position yourself inside the box and click Capture.', 'info');
+
         console.log('Camera started successfully');
     } catch (error) {
         console.error('Camera error:', error);
@@ -116,34 +125,93 @@ async function startCamera() {
     }
 }
 
+
+
 function capturePhoto() {
+    boundingBoxActive = false;
+    detectionActive = false;
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    
+
     let ctx = canvas.getContext('2d');
     ctx.drawImage(video, 0, 0);
-    
+
     capturedImage = canvas.toDataURL('image/jpeg', 0.9);
-    
+
     preview.src = capturedImage;
     preview.style.display = 'block';
     video.style.display = 'none';
-    
+
     // Stop camera
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
     }
-    
+
     document.getElementById('capture').style.display = 'none';
     document.getElementById('retake').style.display = 'inline-block';
     document.getElementById('analyze').style.display = 'inline-block';
-    
+
     showStatus('Photo captured! Click "Analyze Style" to continue.', 'info');
 }
+
 
 function retakePhoto() {
     capturedImage = null;
     startCamera();
+}
+
+
+// Load MoveNet model
+async function loadMoveNet() {
+    if (!window.poseDetection) {
+        showStatus('MoveNet model not loaded. Check your internet connection.', 'error');
+        return;
+    }
+    detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, {
+        modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
+        enableSmoothing: true
+    });
+}
+
+// Run detection and draw bounding box around person
+async function drawDetectionLoop() {
+    if (!detectionActive || !detector || video.videoWidth === 0 || video.videoHeight === 0) {
+        requestAnimationFrame(drawDetectionLoop);
+        return;
+    }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    let ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Run pose detection
+    try {
+        const poses = await detector.estimatePoses(video);
+        if (poses && poses.length > 0) {
+            // Get bounding box from keypoints
+            const keypoints = poses[0].keypoints.filter(kp => kp.score > 0.3);
+            if (keypoints.length > 0) {
+                let minX = Math.min(...keypoints.map(kp => kp.x));
+                let minY = Math.min(...keypoints.map(kp => kp.y));
+                let maxX = Math.max(...keypoints.map(kp => kp.x));
+                let maxY = Math.max(...keypoints.map(kp => kp.y));
+
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#00FF00';
+                ctx.setLineDash([12, 8]);
+                ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+                ctx.setLineDash([]);
+
+                ctx.font = '24px Arial';
+                ctx.fillStyle = '#00FF00';
+                ctx.textAlign = 'center';
+                ctx.fillText('Stand inside the box', (minX + maxX) / 2, minY - 12);
+            }
+        }
+    } catch (err) {
+        console.error('Detection error:', err);
+    }
+    requestAnimationFrame(drawDetectionLoop);
 }
 
 async function analyzePhoto() {
