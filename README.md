@@ -1,6 +1,5 @@
-# Fashion Police - Flask Camera App for Raspberry PiInstall requirements.txt
 
-Run the app with command "streamlit run src/app.py"
+# Fashion Police - Flask Camera App for Raspberry Pi
 
 A lightweight Flask web application that runs on Raspberry Pi, captures photos via webcam, and sends them to an API for style analysis.
 
@@ -13,6 +12,7 @@ A lightweight Flask web application that runs on Raspberry Pi, captures photos v
 ✅ **Touch-Friendly** - Optimized for touchscreen displays  
 
 ## Quick Start
+
 
 ### 1. Install Dependencies
 ```bash
@@ -30,23 +30,24 @@ python flask_app.py
 
 ## Project Structure
 
+
 ```
 fashion-police/
 ├── flask_app.py              # Main Flask application
 ├── requirements-flask.txt    # Python dependencies
 ├── templates/
-│   ├── camera.html          # Camera capture page
-│   ├── results.html         # Results display page
-│   └── feedback.html        # User feedback page
+│   ├── camera.html           # Camera capture page
+│   ├── results.html          # Results display page
+│   └── feedback.html         # User feedback page
 └── static/
     ├── css/
-    │   ├── common.css       # Shared styles
-    │   ├── camera.css       # Camera page styles
-    │   ├── results.css      # Results page styles
-    │   └── feedback.css     # Feedback page styles
+    │   ├── common.css        # Shared styles
+    │   ├── camera.css        # Camera page styles
+    │   ├── results.css       # Results page styles
+    │   └── feedback.css      # Feedback page styles
     └── js/
-        ├── camera.js        # Camera functionality
-        └── feedback.js      # Feedback handling
+        ├── camera.js         # Camera functionality
+        └── feedback.js       # Feedback handling
 ```
 
 ## How It Works
@@ -137,13 +138,14 @@ Change port in `flask_app.py`:
 app.run(host='0.0.0.0', port=5001, debug=True)
 ```
 
+
 ## Development
 
 The app is structured with separation of concerns:
-- **Python**: Flask backend logic
-- **HTML**: Page structure
-- **CSS**: Styling (modular, one file per page + shared)
-- **JavaScript**: Camera control and interactivity
+- **Python**: Flask backend logic (`flask_app.py`)
+- **HTML**: Page structure (`templates/`)
+- **CSS**: Styling (modular, one file per page + shared, in `static/css/`)
+- **JavaScript**: Camera control and interactivity (`static/js/`)
 
 To modify styles or behavior, edit the respective files in `static/css/` or `static/js/`.
 
