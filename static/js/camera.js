@@ -264,41 +264,6 @@ function hideStatus() {
     document.getElementById('status').style.display = 'none';
 }
 
-async function checkDevices() {
-    try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-        
-        let message = '📹 Video Devices Found:\n\n';
-        
-        if (videoDevices.length === 0) {
-            message = '❌ No camera devices detected!\n\n';
-            message += 'Troubleshooting steps:\n';
-            message += '1. Check if USB webcam is plugged in\n';
-            message += '2. Try a different USB port\n';
-            message += '3. On Raspberry Pi, run: ls /dev/video*\n';
-            message += '4. Check if camera works in other apps\n';
-            message += '5. Try rebooting the Pi';
-        } else {
-            videoDevices.forEach((device, index) => {
-                message += `${index + 1}. ${device.label || 'Camera ' + (index + 1)}\n`;
-                message += `   ID: ${device.deviceId.substring(0, 20)}...\n\n`;
-            });
-        }
-        
-        message += '\nAll devices:\n';
-        devices.forEach(device => {
-            message += `- ${device.kind}: ${device.label || 'Unknown'}\n`;
-        });
-        
-        alert(message);
-        console.log('All devices:', devices);
-    } catch (error) {
-        alert('Error checking devices: ' + error.message);
-        console.error('Device check error:', error);
-    }
-}
-
 // Prevent video from pausing
 video.addEventListener('pause', (e) => {
     if (stream && video.srcObject) {
