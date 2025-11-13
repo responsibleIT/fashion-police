@@ -1,7 +1,21 @@
 # Flask Pi Client Requirements
-# Lightweight web framework with full camera control
+# Web framework + ML inference on device
 
+# Web framework
 Flask==3.0.0
+
+# Image processing
 Pillow==10.4.0
 
-# That's it! ~30MB total
+# PyTorch (CPU only - no CUDA on Pi)
+torch==2.4.0
+torchvision==0.19.0
+
+# Transformers and dependencies
+transformers==4.44.0
+huggingface_hub==0.24.0
+safetensors==0.4.4
+
+# Model dependencies
+timm==1.0.8
+numpy==1.26.4

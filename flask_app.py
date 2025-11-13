@@ -10,45 +10,18 @@ from PIL import Image
 import time
 import secrets
 
+from src.scripts.classify_outfit import OutfitClassifier
+
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 
 # Store results in memory (could use Redis/DB for production)
 results_store = {}
 
-
-def get_dummy_response() -> dict:
-    """
-    Dummy server response for testing.
-    Replace this with actual API call later.
-    """
-    time.sleep(2)  # Simulate server processing time
-    
-    return {
-        "record_id": f"dummy_{int(time.time())}",
-        "predictions": [
-            {
-                "name": "Urban Streetwear",
-                "description": "Casual streetwear outfit with hoodies, relaxed fit, sneakers, sporty energy.",
-                "confidence": 0.82
-            },
-            {
-                "name": "Casual Chic",
-                "description": "Clean modern casual outfit: simple basics styled in a polished way.",
-                "confidence": 0.65
-            },
-            {
-                "name": "Sporty / Athleisure",
-                "description": "Athletic activewear look: sportswear, gym-ready vibe.",
-                "confidence": 0.58
-            }
-        ],
-        "top_prediction": {
-            "name": "Urban Streetwear",
-            "description": "Casual streetwear outfit with hoodies, relaxed fit, sneakers, sporty energy.",
-            "confidence": 0.82
-        }
-    }
+# Load the outfit classifier at startup
+print("Initializing Fashion Police ML models...")
+classifier = OutfitClassifier()
+print("Fashion Police is ready!")
 
 
 @app.route('/')
@@ -73,14 +46,40 @@ def process_image():
     # Convert to PIL Image
     image = Image.open(io.BytesIO(image_bytes))
     
-    # Get predictions (dummy for now)
-    result = get_dummy_response()
+    # Run FashionCLIP inference
+    predictions, overlay = classifier.classify(image)
+    
+    # Generate record ID
+    record_id = f"outfit_{int(time.time())}"
+    
+    # Convert overlay image to base64
+    overlay_buffer = io.BytesIO()
+    overlay.save(overlay_buffer, format='JPEG', quality=95)
+    overlay_base64 = base64.b64encode(overlay_buffer.getvalue()).decode('utf-8')
+    
+    # Build result structure
+    result = {
+        "record_id": record_id,
+        "predictions": [
+            {
+                "name": pred["name"],
+                "description": pred["description"],
+                "confidence": pred["score"]
+            }
+            for pred in predictions
+        ],
+        "top_prediction": {
+            "name": predictions[0]["name"],
+            "description": predictions[0]["description"],
+            "confidence": predictions[0]["score"]
+        }
+    }
     
     # Store result
-    record_id = result['record_id']
     results_store[record_id] = {
         'result': result,
-        'image': image_data
+        'image': image_data,
+        'overlay': overlay_base64
     }
     
     # Store in session
@@ -99,7 +98,8 @@ def results():
     data = results_store[record_id]
     return render_template('results.html', 
                          result=data['result'], 
-                         image_data=data['image'])
+                         image_data=data['image'],
+                         overlay_data=data['overlay'])
 
 
 @app.route('/feedback')
