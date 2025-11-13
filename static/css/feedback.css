@@ -1,0 +1,69 @@
+/* Feedback page specific styles */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.image-section img {
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.styles-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.style-button {
+    padding: 15px 20px;
+    font-size: 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+    font-weight: 500;
+}
+
+.style-button:hover {
+    border-color: #667eea;
+    background: #f7fafc;
+    transform: translateX(5px);
+}
+
+.back-button {
+    padding: 15px 30px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: #718096;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: bold;
+    display: block;
+    margin: 20px auto 0;
+}
+
+.back-button:hover {
+    background: #4a5568;
+    transform: translateY(-2px);
+}
+
+#success-message {
+    display: none;
+    text-align: center;
+    padding: 20px;
+    background: #c6f6d5;
+    border: 2px solid #48bb78;
+    border-radius: 8px;
+    margin: 20px 0;
+    color: #22543d;
+    font-size: 18px;
+    font-weight: bold;
+}

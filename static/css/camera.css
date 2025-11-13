@@ -1,0 +1,73 @@
+/* Camera page specific styles */
+.container {
+    max-width: 800px;
+}
+
+h1 {
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+#camera-container {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto 20px;
+}
+
+video, canvas {
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+}
+
+#preview {
+    display: none;
+    width: 100%;
+    border-radius: 10px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#status {
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 8px;
+    display: none;
+}
+
+.status-info {
+    background: #bee3f8;
+    color: #2c5282;
+}
+
+.status-processing {
+    background: #feebc8;
+    color: #7c2d12;
+}
+
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

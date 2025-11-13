@@ -1,101 +1,11 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fashion Police - Feedback</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-        @media (max-width: 768px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        .image-section img {
-            width: 100%;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        .styles-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-        }
-        .style-button {
-            padding: 15px 20px;
-            font-size: 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: left;
-            font-weight: 500;
-        }
-        .style-button:hover {
-            border-color: #667eea;
-            background: #f7fafc;
-            transform: translateX(5px);
-        }
-        .back-button {
-            padding: 15px 30px;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            background: #718096;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-            display: block;
-            margin: 20px auto 0;
-        }
-        .back-button:hover {
-            background: #4a5568;
-            transform: translateY(-2px);
-        }
-        #success-message {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            background: #c6f6d5;
-            border: 2px solid #48bb78;
-            border-radius: 8px;
-            margin: 20px 0;
-            color: #22543d;
-            font-size: 18px;
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/feedback.css') }}">
 </head>
 <body>
     <div class="container">
@@ -123,43 +33,6 @@
         <button class="back-button" onclick="window.location.href='/results'">← Back to Results</button>
     </div>
 
-    <script>
-        async function submitFeedback(style) {
-            try {
-                const response = await fetch('/submit_feedback', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ style: style })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // Show success message
-                    const successMsg = document.getElementById('success-message');
-                    successMsg.textContent = `✅ Saved! You selected: ${style}`;
-                    successMsg.style.display = 'block';
-                    
-                    // Disable all buttons
-                    document.querySelectorAll('.style-button').forEach(btn => {
-                        btn.disabled = true;
-                        btn.style.opacity = '0.5';
-                        btn.style.cursor = 'not-allowed';
-                    });
-                    
-                    // Show confetti effect (simple version)
-                    setTimeout(() => {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }, 100);
-                } else {
-                    alert('Failed to save feedback');
-                }
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/feedback.js') }}"></script>
 </body>
 </html>
