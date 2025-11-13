@@ -54,6 +54,7 @@ video {
     left: 0;
     z-index: 1;
     object-fit: cover;
+    transform: scaleX(-1); /* Flip horizontally for mirror effect */
 }
 
 canvas {
@@ -66,6 +67,7 @@ canvas {
     left: 0;
     z-index: 2;
     pointer-events: none;
+    transform: scaleX(-1); /* Flip horizontally for mirror effect */
 }
 
 #preview {
@@ -78,6 +80,7 @@ canvas {
     left: 0;
     z-index: 3;
     object-fit: cover;
+    transform: scaleX(-1); /* Flip horizontally for mirror effect */
 }
 
 .controls {
