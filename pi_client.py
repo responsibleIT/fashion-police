@@ -64,14 +64,16 @@ def main():
         st.session_state.result = None
     if "captured_image" not in st.session_state:
         st.session_state.captured_image = None
+    if "camera_key" not in st.session_state:
+        st.session_state.camera_key = 0
     
     # Page: Camera
     if st.session_state.page == "camera":
         st.title("👮 Fashion Police")
         st.write("Take a photo of your outfit to get style predictions!")
         
-        # Camera input
-        img_file = st.camera_input("Take a photo")
+        # Camera input with dynamic key to force reset when needed
+        img_file = st.camera_input("Take a photo", key=f"camera_{st.session_state.camera_key}")
         
         if img_file is not None:
             captured_image = Image.open(img_file)
@@ -82,6 +84,7 @@ def main():
                 st.image(captured_image, caption="Your photo", use_column_width=True)
             
             with col2:
+                st.write("Photo captured! Ready to analyze.")
                 if st.button("✅ Analyze Style", use_container_width=True, type="primary"):
                     st.session_state.captured_image = captured_image
                     
@@ -92,6 +95,8 @@ def main():
                         st.session_state.result = result
                         st.session_state.page = "results"
                         st.rerun()
+        else:
+            st.info("📷 Click the camera button above to take a photo")
     
     # Page: Results
     elif st.session_state.page == "results":
@@ -117,6 +122,7 @@ def main():
                 st.session_state.page = "camera"
                 st.session_state.result = None
                 st.session_state.captured_image = None
+                st.session_state.camera_key += 1  # Force camera reset
                 st.rerun()
         
         with col2:
