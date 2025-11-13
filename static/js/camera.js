@@ -8,6 +8,9 @@ let capturedImage = null;
 let boundingBoxActive = true;
 let detector = null;
 let detectionActive = false;
+let poseHoldStartTime = null;
+let poseDetectedForCapture = false;
+const POSE_HOLD_DURATION = 2000; // Hold pose for 2 seconds to capture
 
 async function startCamera() {
     try {
@@ -131,6 +134,9 @@ async function startCamera() {
 function capturePhoto() {
     boundingBoxActive = false;
     detectionActive = false;
+    poseHoldStartTime = null; // Reset pose timer
+    poseDetectedForCapture = false;
+    
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
@@ -160,6 +166,8 @@ function capturePhoto() {
 
 function retakePhoto() {
     capturedImage = null;
+    poseHoldStartTime = null; // Reset pose timer
+    poseDetectedForCapture = false;
     preview.style.display = 'none';
     video.style.display = 'block';
     canvas.style.display = 'block'; // Show canvas overlay again
@@ -194,30 +202,120 @@ async function drawDetectionLoop() {
     try {
         const poses = await detector.estimatePoses(video);
         if (poses && poses.length > 0) {
+            const pose = poses[0];
+            
             // Get bounding box from keypoints
-            const keypoints = poses[0].keypoints.filter(kp => kp.score > 0.3);
+            const keypoints = pose.keypoints.filter(kp => kp.score > 0.3);
             if (keypoints.length > 0) {
                 let minX = Math.min(...keypoints.map(kp => kp.x));
                 let minY = Math.min(...keypoints.map(kp => kp.y));
                 let maxX = Math.max(...keypoints.map(kp => kp.x));
                 let maxY = Math.max(...keypoints.map(kp => kp.y));
 
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = '#00FF00';
-                ctx.setLineDash([12, 8]);
-                ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
-                ctx.setLineDash([]);
+                // Check if capture pose is detected (hands raised above shoulders)
+                const isPoseTrigger = checkCapturePose(pose);
+                
+                if (isPoseTrigger) {
+                    if (!poseHoldStartTime) {
+                        poseHoldStartTime = Date.now();
+                        poseDetectedForCapture = true;
+                    }
+                    
+                    const holdTime = Date.now() - poseHoldStartTime;
+                    const progress = Math.min(holdTime / POSE_HOLD_DURATION, 1.0);
+                    
+                    // Draw bounding box in yellow/orange when pose detected
+                    ctx.lineWidth = 4;
+                    ctx.strokeStyle = progress < 1.0 ? '#FFA500' : '#00FF00';
+                    ctx.setLineDash([12, 8]);
+                    ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+                    ctx.setLineDash([]);
+                    
+                    // Draw progress bar
+                    const barWidth = 200;
+                    const barHeight = 20;
+                    const barX = (canvas.width - barWidth) / 2;
+                    const barY = canvas.height - 60;
+                    
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(barX, barY, barWidth, barHeight);
+                    
+                    ctx.fillStyle = '#FFA500';
+                    ctx.fillRect(barX, barY, barWidth * progress, barHeight);
+                    
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(barX, barY, barWidth, barHeight);
 
-                ctx.font = '24px Arial';
-                ctx.fillStyle = '#00FF00';
-                ctx.textAlign = 'center';
-                ctx.fillText('Stand inside the box', (minX + maxX) / 2, minY - 12);
+                    ctx.font = '20px Arial';
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Hold pose to capture...', canvas.width / 2, barY - 10);
+                    
+                    // Trigger capture when pose held long enough
+                    if (holdTime >= POSE_HOLD_DURATION && poseDetectedForCapture) {
+                        poseDetectedForCapture = false;
+                        poseHoldStartTime = null;
+                        capturePhoto();
+                        return; // Exit loop as photo is captured
+                    }
+                } else {
+                    // Reset timer if pose is broken
+                    poseHoldStartTime = null;
+                    poseDetectedForCapture = false;
+                    
+                    // Draw normal green bounding box
+                    ctx.lineWidth = 4;
+                    ctx.strokeStyle = '#00FF00';
+                    ctx.setLineDash([12, 8]);
+                    ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
+                    ctx.setLineDash([]);
+
+                    ctx.font = '24px Arial';
+                    ctx.fillStyle = '#00FF00';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Make a T-pose to take photo', canvas.width / 2, minY - 12);
+                }
             }
         }
     } catch (err) {
         console.error('Detection error:', err);
     }
     requestAnimationFrame(drawDetectionLoop);
+}
+
+// Check if user is in the capture pose (T-pose: arms extended horizontally)
+function checkCapturePose(pose) {
+    const keypoints = pose.keypoints;
+    
+    // Get relevant keypoints for T-pose
+    const leftShoulder = keypoints.find(kp => kp.name === 'left_shoulder');
+    const rightShoulder = keypoints.find(kp => kp.name === 'right_shoulder');
+    const leftElbow = keypoints.find(kp => kp.name === 'left_elbow');
+    const rightElbow = keypoints.find(kp => kp.name === 'right_elbow');
+    const leftWrist = keypoints.find(kp => kp.name === 'left_wrist');
+    const rightWrist = keypoints.find(kp => kp.name === 'right_wrist');
+    
+    // Check if all keypoints are detected with good confidence
+    if (!leftShoulder || !rightShoulder || !leftElbow || !rightElbow || !leftWrist || !rightWrist) return false;
+    if (leftShoulder.score < 0.3 || rightShoulder.score < 0.3 || 
+        leftElbow.score < 0.3 || rightElbow.score < 0.3 ||
+        leftWrist.score < 0.3 || rightWrist.score < 0.3) return false;
+    
+    // For T-pose, check that:
+    // 1. Both arms are extended horizontally (elbows and wrists are roughly at shoulder height)
+    // 2. Arms are extended outward (wrists are far from shoulders horizontally)
+    
+    const shoulderHeight = (leftShoulder.y + rightShoulder.y) / 2;
+    const leftArmHorizontal = Math.abs(leftWrist.y - shoulderHeight) < 80 && Math.abs(leftElbow.y - shoulderHeight) < 80;
+    const rightArmHorizontal = Math.abs(rightWrist.y - shoulderHeight) < 80 && Math.abs(rightElbow.y - shoulderHeight) < 80;
+    
+    // Check that arms are extended outward (wrists should be far from body center)
+    const bodyCenter = (leftShoulder.x + rightShoulder.x) / 2;
+    const leftArmExtended = leftWrist.x < leftShoulder.x - 50; // Left wrist should be left of shoulder
+    const rightArmExtended = rightWrist.x > rightShoulder.x + 50; // Right wrist should be right of shoulder
+    
+    return leftArmHorizontal && rightArmHorizontal && leftArmExtended && rightArmExtended;
 }
 
 async function analyzePhoto() {
