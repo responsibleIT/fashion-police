@@ -217,7 +217,7 @@ async function drawDetectionLoop() {
                 let maxX = Math.max(...keypoints.map(kp => kp.x));
                 let maxY = Math.max(...keypoints.map(kp => kp.y));
 
-                // Check if capture pose is detected (hands raised above shoulders)
+                // Check if T-pose is detected
                 const isPoseTrigger = checkCapturePose(pose);
                 
                 if (isPoseTrigger) {
@@ -307,50 +307,10 @@ function checkCapturePose(pose) {
     const leftArmHorizontal = Math.abs(leftWrist.y - shoulderHeight) < 80 && Math.abs(leftElbow.y - shoulderHeight) < 80;
     const rightArmHorizontal = Math.abs(rightWrist.y - shoulderHeight) < 80 && Math.abs(rightElbow.y - shoulderHeight) < 80;
     
-    // Check that arms are extended outward (wrists should be far from body center)
-    const bodyCenter = (leftShoulder.x + rightShoulder.x) / 2;
-    const leftArmExtended = Math.abs(leftWrist.x - leftShoulder.x) > 20; // At least 20px away from shoulder (either direction)
-    const rightArmExtended = Math.abs(rightWrist.x - rightShoulder.x) > 20; // At least 20px away from shoulder (either direction)
-    
-    return leftArmHorizontal && rightArmHorizontal && leftArmExtended && rightArmExtended;
-}
-
-// Get debug information about T-pose detection
-function getTPoseDebugInfo(pose) {
-    const keypoints = pose.keypoints;
-    const lines = [];
-    
-    const leftShoulder = keypoints.find(kp => kp.name === 'left_shoulder');
-    const rightShoulder = keypoints.find(kp => kp.name === 'right_shoulder');
-    const leftElbow = keypoints.find(kp => kp.name === 'left_elbow');
-    const rightElbow = keypoints.find(kp => kp.name === 'right_elbow');
-    const leftWrist = keypoints.find(kp => kp.name === 'left_wrist');
-    const rightWrist = keypoints.find(kp => kp.name === 'right_wrist');
-    
-    if (!leftShoulder || !rightShoulder || !leftElbow || !rightElbow || !leftWrist || !rightWrist) {
-        lines.push('Missing keypoints - not all body parts detected');
-        return lines;
-    }
-    
-    const shoulderHeight = (leftShoulder.y + rightShoulder.y) / 2;
-    const leftWristDiff = Math.abs(leftWrist.y - shoulderHeight);
-    const rightWristDiff = Math.abs(rightWrist.y - shoulderHeight);
-    const leftElbowDiff = Math.abs(leftElbow.y - shoulderHeight);
-    const rightElbowDiff = Math.abs(rightElbow.y - shoulderHeight);
-    
-    const leftArmHorizontal = leftWristDiff < 80 && leftElbowDiff < 80;
-    const rightArmHorizontal = rightWristDiff < 80 && rightElbowDiff < 80;
-    
     const leftArmExtended = Math.abs(leftWrist.x - leftShoulder.x) > 20;
     const rightArmExtended = Math.abs(rightWrist.x - rightShoulder.x) > 20;
     
-    lines.push('T-Pose Detection:');
-    lines.push(`Left arm horizontal: ${leftArmHorizontal ? '✓' : '✗'} (wrist: ${leftWristDiff.toFixed(0)}px, elbow: ${leftElbowDiff.toFixed(0)}px)`);
-    lines.push(`Right arm horizontal: ${rightArmHorizontal ? '✓' : '✗'} (wrist: ${rightWristDiff.toFixed(0)}px, elbow: ${rightElbowDiff.toFixed(0)}px)`);
-    lines.push(`Left arm extended: ${leftArmExtended ? '✓' : '✗'} (${Math.abs(leftWrist.x - leftShoulder.x).toFixed(0)}px away)`);
-    lines.push(`Right arm extended: ${rightArmExtended ? '✓' : '✗'} (${Math.abs(rightWrist.x - rightShoulder.x).toFixed(0)}px away)`);
-    
-    return lines;
+    return leftArmHorizontal && rightArmHorizontal && leftArmExtended && rightArmExtended;
 }
 
 async function analyzePhoto() {

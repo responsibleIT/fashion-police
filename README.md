@@ -5,11 +5,13 @@ A lightweight Flask web application that runs on Raspberry Pi, captures photos v
 
 ## Features
 
-✅ **Camera Control** - Full JavaScript-based webcam handling  
-✅ **Clean UI** - Responsive design with external CSS/JS  
-✅ **API Ready** - Structured for future API integration  
-✅ **Lightweight** - Minimal dependencies (~30MB)  
-✅ **Touch-Friendly** - Optimized for touchscreen displays  
+✅ **AI-Powered Pose Detection** - T-pose gesture to capture photos hands-free  
+✅ **Real-time Bounding Box** - MoveNet AI tracks person in camera feed  
+✅ **Fullscreen Portrait Mode** - Optimized for vertical touchscreen displays  
+✅ **Mirror Mode** - Camera feed flipped for intuitive positioning  
+✅ **Clean UI** - Minimal, distraction-free interface  
+✅ **API Ready** - Structured for future style analysis integration  
+✅ **Touch-Friendly** - Optimized for Raspberry Pi touchscreen displays  
 
 ## Quick Start
 
@@ -53,10 +55,14 @@ fashion-police/
 ## How It Works
 
 ### 1. Camera Page (`/`)
-- Automatically starts webcam
-- Capture photo with one click
-- Preview before submitting
-- Retake option available
+- **Automatic camera startup** with fullscreen portrait view
+- **Real-time AI person detection** using TensorFlow.js MoveNet
+- **Green bounding box** tracks detected person
+- **T-pose gesture capture**: Extend arms horizontally and hold for 2 seconds
+- **Orange bounding box + progress bar** appears when T-pose detected
+- **Manual capture button** available as backup
+- **Mirror mode** for intuitive self-positioning
+- **Preview and retake** options before final submission
 
 ### 2. Results Page (`/results`)
 - Displays captured photo
@@ -68,6 +74,24 @@ fashion-police/
 - Shows captured photo
 - Grid of style options
 - Submit correction if prediction is wrong
+- Returns to start screen after submission
+
+## Technologies
+
+### Frontend
+- **TensorFlow.js** - Browser-based machine learning
+- **MoveNet (Lightning)** - Real-time pose estimation model
+- **MediaDevices API** - Webcam access and control
+- **Canvas API** - Overlay graphics and bounding boxes
+
+### Backend
+- **Flask 3.0.0** - Lightweight Python web framework
+- **Pillow** - Image processing
+
+### Performance
+- Runs at 10-15 FPS on Raspberry Pi 5
+- ~3MB model download (cached after first load)
+- Fullscreen optimized for portrait touchscreens
 
 ## Hardware Requirements
 
@@ -110,9 +134,26 @@ Works best with:
 - Firefox
 - Safari (iOS)
 
-**Note**: Camera access requires:
+**Requirements**:
+- JavaScript enabled
 - HTTPS connection OR localhost
-- User permission (browser will prompt)
+- User permission for camera access
+- Internet connection (first load only, to download AI model)
+
+## Using the T-Pose Capture
+
+1. **Stand in front of the camera** - Position yourself in the frame
+2. **Watch for green bounding box** - System tracks your body position
+3. **Extend arms horizontally** - Make a T-pose with arms at shoulder height
+4. **Box turns orange** - T-pose detected! Hold steady
+5. **Progress bar fills** - Keep holding for 2 seconds
+6. **Photo captured automatically** - No need to touch anything!
+
+**Tips:**
+- Keep wrists ~20px away from shoulders (doesn't need to be perfect)
+- Arms should be roughly at shoulder height (±80px tolerance)
+- Works in mirror mode - move naturally as you see yourself
+- Manual capture button available if T-pose doesn't work
 
 ## Troubleshooting
 
@@ -120,6 +161,21 @@ Works best with:
 1. Check browser permissions (camera icon in address bar)
 2. Verify webcam is connected and recognized: `ls /dev/video*`
 3. Check browser console (F12) for errors
+4. Ensure internet connection for first-time AI model download
+
+### T-Pose Not Detecting
+1. Ensure good lighting for better pose detection
+2. Stand 1-2 meters from camera for optimal detection
+3. Extend arms horizontally at shoulder height
+4. Keep arms extended outward (wrists away from body)
+5. Use manual capture button if gesture doesn't work
+6. Check browser console for detection errors
+
+### Slow Performance
+- Expected: 10-15 FPS on Raspberry Pi 5
+- Close other browser tabs to free up resources
+- Ensure webcam resolution isn't too high (640x480 recommended)
+- AI model caches after first load (faster on subsequent uses)
 
 ### Camera Shuts Down
 - **Cause**: Insufficient USB power
@@ -145,9 +201,32 @@ The app is structured with separation of concerns:
 - **Python**: Flask backend logic (`flask_app.py`)
 - **HTML**: Page structure (`templates/`)
 - **CSS**: Styling (modular, one file per page + shared, in `static/css/`)
-- **JavaScript**: Camera control and interactivity (`static/js/`)
+- **JavaScript**: Camera control, AI detection, and interactivity (`static/js/`)
+
+### Key Components
+
+**camera.js**:
+- MoveNet pose detection integration
+- T-pose gesture recognition
+- Real-time bounding box rendering
+- Mirror mode canvas transformation
+- Camera stream management
+
+**camera.css**:
+- Fullscreen portrait layout
+- Mirrored video feed
+- Overlay positioning for controls
 
 To modify styles or behavior, edit the respective files in `static/css/` or `static/js/`.
+
+### Customizing T-Pose Detection
+
+Edit `camera.js` to adjust detection parameters:
+```javascript
+const POSE_HOLD_DURATION = 2000; // Hold time in milliseconds
+const leftArmHorizontal = Math.abs(leftWrist.y - shoulderHeight) < 80; // Vertical tolerance
+const leftArmExtended = Math.abs(leftWrist.x - leftShoulder.x) > 20; // Extension threshold
+```
 
 ## License
 
