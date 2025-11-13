@@ -198,6 +198,11 @@ async function drawDetectionLoop() {
     let ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Flip the canvas context to match the mirrored video
+    ctx.save();
+    ctx.scale(-1, 1);
+    ctx.translate(-canvas.width, 0);
+
     // Run pose detection
     try {
         const poses = await detector.estimatePoses(video);
@@ -312,6 +317,8 @@ async function drawDetectionLoop() {
     } catch (err) {
         console.error('Detection error:', err);
     }
+    
+    ctx.restore(); // Restore canvas context after flipping
     requestAnimationFrame(drawDetectionLoop);
 }
 

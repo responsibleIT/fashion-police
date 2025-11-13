@@ -67,7 +67,7 @@ canvas {
     left: 0;
     z-index: 2;
     pointer-events: none;
-    transform: scaleX(-1); /* Flip horizontally for mirror effect */
+    /* No transform - we'll handle flipping in JavaScript */
 }
 
 #preview {
