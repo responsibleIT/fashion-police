@@ -343,8 +343,8 @@ function checkCapturePose(pose) {
     
     // Check that arms are extended outward (wrists should be far from body center)
     const bodyCenter = (leftShoulder.x + rightShoulder.x) / 2;
-    const leftArmExtended = leftWrist.x < leftShoulder.x - 50; // Left wrist should be left of shoulder
-    const rightArmExtended = rightWrist.x > rightShoulder.x + 50; // Right wrist should be right of shoulder
+    const leftArmExtended = leftWrist.x < leftShoulder.x - 20; // Left wrist should be left of shoulder (reduced from 50px to 20px)
+    const rightArmExtended = rightWrist.x > rightShoulder.x + 20; // Right wrist should be right of shoulder (reduced from 50px to 20px)
     
     return leftArmHorizontal && rightArmHorizontal && leftArmExtended && rightArmExtended;
 }
@@ -375,8 +375,8 @@ function getTPoseDebugInfo(pose) {
     const leftArmHorizontal = leftWristDiff < 80 && leftElbowDiff < 80;
     const rightArmHorizontal = rightWristDiff < 80 && rightElbowDiff < 80;
     
-    const leftArmExtended = leftWrist.x < leftShoulder.x - 50;
-    const rightArmExtended = rightWrist.x > rightShoulder.x + 50;
+    const leftArmExtended = leftWrist.x < leftShoulder.x - 20;
+    const rightArmExtended = rightWrist.x > rightShoulder.x + 20;
     
     lines.push('T-Pose Detection:');
     lines.push(`Left arm horizontal: ${leftArmHorizontal ? '✓' : '✗'} (wrist: ${leftWristDiff.toFixed(0)}px, elbow: ${leftElbowDiff.toFixed(0)}px)`);
