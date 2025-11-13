@@ -1,0 +1,7 @@
+# Flask Pi Client Requirements
+# Lightweight web framework with full camera control
+
+Flask==3.0.0
+Pillow==10.4.0
+
+# That's it! ~30MB total

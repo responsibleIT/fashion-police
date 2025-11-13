@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion Police - Camera</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        #camera-container {
+            position: relative;
+            width: 100%;
+            max-width: 640px;
+            margin: 0 auto 20px;
+        }
+        video, canvas {
+            width: 100%;
+            border-radius: 10px;
+            display: block;
+        }
+        #preview {
+            display: none;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #4a5568;
+            transform: translateY(-2px);
+        }
+        #status {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .status-info {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+        .status-processing {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👮 Fashion Police</h1>
+        <p class="subtitle">Take a photo of your outfit to get style predictions!</p>
+        
+        <div id="camera-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            <img id="preview" alt="Preview">
+        </div>
+        
+        <div id="status"></div>
+        
+        <div class="controls">
+            <button id="start-camera" class="btn-primary" onclick="startCamera()">📷 Start Camera</button>
+            <button id="capture" class="btn-success" onclick="capturePhoto()" style="display:none;">📸 Capture Photo</button>
+            <button id="retake" class="btn-secondary" onclick="retakePhoto()" style="display:none;">🔄 Retake</button>
+            <button id="analyze" class="btn-success" onclick="analyzePhoto()" style="display:none;">✅ Analyze Style</button>
+        </div>
+    </div>
+
+    <script>
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let preview = document.getElementById('preview');
+        let stream = null;
+        let capturedImage = null;
+
+        async function startCamera() {
+            try {
+                // Stop existing stream if any
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    } 
+                });
+                
+                video.srcObject = stream;
+                video.style.display = 'block';
+                preview.style.display = 'none';
+                
+                document.getElementById('start-camera').style.display = 'none';
+                document.getElementById('capture').style.display = 'inline-block';
+                document.getElementById('retake').style.display = 'none';
+                document.getElementById('analyze').style.display = 'none';
+                
+                showStatus('Camera ready! Position yourself and click Capture.', 'info');
+            } catch (error) {
+                alert('Error accessing camera: ' + error.message);
+                console.error('Camera error:', error);
+            }
+        }
+
+        function capturePhoto() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            let ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            
+            capturedImage = canvas.toDataURL('image/jpeg', 0.9);
+            
+            preview.src = capturedImage;
+            preview.style.display = 'block';
+            video.style.display = 'none';
+            
+            // Stop camera
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            
+            document.getElementById('capture').style.display = 'none';
+            document.getElementById('retake').style.display = 'inline-block';
+            document.getElementById('analyze').style.display = 'inline-block';
+            
+            showStatus('Photo captured! Click "Analyze Style" to continue.', 'info');
+        }
+
+        function retakePhoto() {
+            capturedImage = null;
+            startCamera();
+        }
+
+        async function analyzePhoto() {
+            if (!capturedImage) {
+                alert('Please capture a photo first');
+                return;
+            }
+
+            showStatus('Processing your style...', 'processing', true);
+            
+            document.getElementById('retake').disabled = true;
+            document.getElementById('analyze').disabled = true;
+
+            try {
+                const response = await fetch('/process_image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ image: capturedImage })
+                });
+
+                if (response.ok) {
+                    window.location.href = '/results';
+                } else {
+                    throw new Error('Failed to process image');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+                document.getElementById('retake').disabled = false;
+                document.getElementById('analyze').disabled = false;
+                hideStatus();
+            }
+        }
+
+        function showStatus(message, type, showSpinner = false) {
+            const status = document.getElementById('status');
+            status.innerHTML = showSpinner ? '<div class="spinner"></div>' + message : message;
+            status.className = 'status-' + type;
+            status.style.display = 'block';
+        }
+
+        function hideStatus() {
+            document.getElementById('status').style.display = 'none';
+        }
+
+        // Auto-start camera on page load
+        window.addEventListener('load', startCamera);
+    </script>
+</body>
+</html>
