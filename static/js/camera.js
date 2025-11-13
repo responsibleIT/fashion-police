@@ -343,8 +343,8 @@ function checkCapturePose(pose) {
     
     // Check that arms are extended outward (wrists should be far from body center)
     const bodyCenter = (leftShoulder.x + rightShoulder.x) / 2;
-    const leftArmExtended = leftWrist.x < leftShoulder.x - 20; // Left wrist should be left of shoulder (reduced from 50px to 20px)
-    const rightArmExtended = rightWrist.x > rightShoulder.x + 20; // Right wrist should be right of shoulder (reduced from 50px to 20px)
+    const leftArmExtended = Math.abs(leftWrist.x - leftShoulder.x) > 20; // At least 20px away from shoulder (either direction)
+    const rightArmExtended = Math.abs(rightWrist.x - rightShoulder.x) > 20; // At least 20px away from shoulder (either direction)
     
     return leftArmHorizontal && rightArmHorizontal && leftArmExtended && rightArmExtended;
 }
@@ -375,14 +375,14 @@ function getTPoseDebugInfo(pose) {
     const leftArmHorizontal = leftWristDiff < 80 && leftElbowDiff < 80;
     const rightArmHorizontal = rightWristDiff < 80 && rightElbowDiff < 80;
     
-    const leftArmExtended = leftWrist.x < leftShoulder.x - 20;
-    const rightArmExtended = rightWrist.x > rightShoulder.x + 20;
+    const leftArmExtended = Math.abs(leftWrist.x - leftShoulder.x) > 20;
+    const rightArmExtended = Math.abs(rightWrist.x - rightShoulder.x) > 20;
     
     lines.push('T-Pose Detection:');
     lines.push(`Left arm horizontal: ${leftArmHorizontal ? '✓' : '✗'} (wrist: ${leftWristDiff.toFixed(0)}px, elbow: ${leftElbowDiff.toFixed(0)}px)`);
     lines.push(`Right arm horizontal: ${rightArmHorizontal ? '✓' : '✗'} (wrist: ${rightWristDiff.toFixed(0)}px, elbow: ${rightElbowDiff.toFixed(0)}px)`);
-    lines.push(`Left arm extended: ${leftArmExtended ? '✓' : '✗'} (${(leftShoulder.x - leftWrist.x).toFixed(0)}px)`);
-    lines.push(`Right arm extended: ${rightArmExtended ? '✓' : '✗'} (${(rightWrist.x - rightShoulder.x).toFixed(0)}px)`);
+    lines.push(`Left arm extended: ${leftArmExtended ? '✓' : '✗'} (${Math.abs(leftWrist.x - leftShoulder.x).toFixed(0)}px away)`);
+    lines.push(`Right arm extended: ${rightArmExtended ? '✓' : '✗'} (${Math.abs(rightWrist.x - rightShoulder.x).toFixed(0)}px away)`);
     
     return lines;
 }
