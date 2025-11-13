@@ -127,6 +127,7 @@ async function startCamera() {
 
 
 
+
 function capturePhoto() {
     boundingBoxActive = false;
     detectionActive = false;
@@ -141,6 +142,7 @@ function capturePhoto() {
     preview.src = capturedImage;
     preview.style.display = 'block';
     video.style.display = 'none';
+    canvas.style.display = 'none'; // Hide canvas overlay
 
     // Stop camera
     if (stream) {
@@ -155,8 +157,12 @@ function capturePhoto() {
 }
 
 
+
 function retakePhoto() {
     capturedImage = null;
+    preview.style.display = 'none';
+    video.style.display = 'block';
+    canvas.style.display = 'block'; // Show canvas overlay again
     startCamera();
 }
 
