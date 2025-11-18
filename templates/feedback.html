@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion Police - Feedback</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/feedback.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>What style do you think this is?</h1>
+        
+        <div class="content-grid">
+            <div class="image-section">
+                <img src="data:image/jpeg;base64,{{ image_data }}" alt="Your outfit">
+            </div>
+            
+            <div class="styles-section">
+                <h2 style="margin-bottom: 15px; color: #333;">Select the correct style:</h2>
+                <div class="styles-grid">
+                    {% for style in styles %}
+                    <button class="style-button" onclick="submitFeedback('{{ style }}')">
+                        {{ style }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div id="success-message"></div>
+        
+        <button class="back-button" onclick="window.location.href='/'">← Back to Start</button>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/feedback.js') }}"></script>
+</body>
+</html>

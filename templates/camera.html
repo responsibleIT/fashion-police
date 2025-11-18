@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fashion Police - Camera</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/camera.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>👮 Fashion Police</h1>
+        
+        <div id="camera-container">
+            <canvas id="canvas"></canvas>
+            <video id="video" autoplay playsinline></video>
+            <img id="preview" alt="Preview">
+        </div>
+        
+        <div id="status"></div>
+        
+        <div class="controls">
+            <button id="start-camera" class="btn-primary" onclick="startCamera()">📷 Start Camera</button>
+            <button id="capture" class="btn-success" onclick="capturePhoto()" style="display:none;">📸 Capture Photo</button>
+            <button id="retake" class="btn-secondary" onclick="retakePhoto()" style="display:none;">🔄 Retake</button>
+            <button id="analyze" class="btn-success" onclick="analyzePhoto()" style="display:none;">✅ Analyze Style</button>
+        </div>
+    </div>
+
+    <!-- TensorFlow.js and MoveNet CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.16.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+    <script src="{{ url_for('static', filename='js/camera.js') }}"></script>
+</body>
+</html>

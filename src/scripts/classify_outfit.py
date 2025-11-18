@@ -1,43 +1,68 @@
-from __future__ import annotations
-from typing import Dict, Any, List
-import numpy as np
-from PIL import Image
+"""
+classify_outfit.py
+-------------------
 
-from scripts.load_model import SegmentationModel
-from scripts.style_predictor import StylePredictor
+This module combines **clothing segmentation** and **style prediction** into a single
+unified class, `OutfitClassifier`, that performs both tasks on a given image.
+
+Usage
+-----
+>>> classifier = OutfitClassifier()
+>>> predictions, overlay = classifier.classify(image)
+>>> print(predictions[0])  # highest-scoring style
+>>> overlay.show()
+"""
+
+from __future__ import annotations
+
+from PIL import Image
+from typing import List, Dict, Tuple
+
+from .load_model import SegmentationModel
+from .style_predictor import StylePredictor
 
 
 class OutfitClassifier:
     """
-    - Segment to create an evidence/overlay image to show user.
-    - Run FashionCLIP (StylePredictor) on the ORIGINAL image to get style candidates.
-    - Return both.
+    High-level class that orchestrates segmentation + style classification.
+    
+    This is the main entry point for Fashion Police's ML pipeline.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Initialize both the segmentation model and the style predictor."""
+        print("Loading segmentation model...")
         self.seg_model = SegmentationModel()
+        print("Loading FashionCLIP style predictor...")
         self.style_predictor = StylePredictor()
+        print("Outfit classifier ready!")
 
-    def process(self, image: Image.Image) -> Dict[str, Any]:
-        # 1. segmentation (for visual feedback / fairness comms)
-        mask, overlay = self.seg_model.segment(image)
+    def classify(self, image: Image.Image) -> Tuple[List[Dict], Image.Image]:
+        """
+        Classify the outfit in the image into fashion styles.
 
-        # 2. optional fairness masking (we won't use it yet, but keep if you want later)
-        np_frame = np.array(image.convert("RGB"))
-        face_mask = (mask == 11)  # 11 == face in seg labels
-        if face_mask.any():
-            np_frame[face_mask] = 0
-        # masked_for_display = Image.fromarray(np_frame)  # not used right now
+        Parameters
+        ----------
+        image : PIL.Image
+            The input image containing a person wearing clothing.
 
-        # we choose overlay as "evidence" because it's visually cool
-        evidence_image = overlay
-
-        # 3. style prediction using ORIGINAL image (not masked)
-        ranked_styles: List[Dict[str, float]] = self.style_predictor.predict(
-            original_image=image
-        )
-
-        return {
-            "evidence_image": evidence_image,
-            "ranked_styles": ranked_styles,
-        }
+        Returns
+        -------
+        predictions : List[Dict]
+            A list of style predictions sorted by confidence score.
+            Each dict contains:
+                - 'name': str (style name)
+                - 'score': float (similarity score 0-1)
+                - 'description': str (style description)
+        
+        overlay : PIL.Image
+            A visualisation of the segmentation mask overlaid on the
+            original image with colored clothing regions.
+        """
+        # Run segmentation to get overlay (we ignore the mask itself)
+        _, overlay = self.seg_model.segment(image)
+        
+        # Run style prediction
+        predictions = self.style_predictor.predict(image)
+        
+        return predictions, overlay

@@ -1,4 +1,5 @@
-"""Data module for fashion-police application."""
+# Data package"""Data module for fashion-police application."""
+
 
 from .styles import STYLES, STYLE_NAMES
 

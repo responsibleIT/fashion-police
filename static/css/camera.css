@@ -1,0 +1,131 @@
+/* Camera page specific styles - Fullscreen portrait mode */
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+}
+
+.container {
+    max-width: 100%;
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    margin: 10px 0 5px 0;
+    font-size: 24px;
+    text-align: center;
+    position: absolute;
+    top: 10px;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+#camera-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+video {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    object-fit: cover;
+    transform: scaleX(-1); /* Flip horizontally for mirror effect */
+}
+
+canvas {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    pointer-events: none;
+    /* No transform - we'll handle flipping in JavaScript */
+}
+
+#preview {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 3;
+    object-fit: cover;
+    transform: scaleX(-1); /* Flip horizontally for mirror effect */
+}
+
+.controls {
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    z-index: 10;
+    padding: 0 10px;
+}
+
+#status {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    display: none;
+    z-index: 10;
+    max-width: 80%;
+}
+
+.status-info {
+    background: #bee3f8;
+    color: #2c5282;
+}
+
+.status-processing {
+    background: #feebc8;
+    color: #7c2d12;
+}
+
+.spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
