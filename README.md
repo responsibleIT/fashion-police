@@ -1,16 +1,17 @@
 
 # Fashion Police - Flask Camera App for Raspberry Pi
 
-A lightweight Flask web application that runs on Raspberry Pi, captures photos via webcam, and sends them to an API for style analysis.
+A Flask web application that runs on Raspberry Pi with on-device ML inference. Captures photos via webcam and performs real-time fashion style classification and clothing segmentation using FashionCLIP and SegFormer models.
 
 ## Features
 
+✅ **On-Device ML Inference** - FashionCLIP style classification runs locally on Pi  
+✅ **Clothing Segmentation** - SegFormer model identifies clothing regions  
 ✅ **AI-Powered Pose Detection** - T-pose gesture to capture photos hands-free  
 ✅ **Real-time Bounding Box** - MoveNet AI tracks person in camera feed  
 ✅ **Fullscreen Portrait Mode** - Optimized for vertical touchscreen displays  
 ✅ **Mirror Mode** - Camera feed flipped for intuitive positioning  
 ✅ **Clean UI** - Minimal, distraction-free interface  
-✅ **API Ready** - Structured for future style analysis integration  
 ✅ **Touch-Friendly** - Optimized for Raspberry Pi touchscreen displays  
 
 ## Quick Start
@@ -36,7 +37,14 @@ python flask_app.py
 ```
 fashion-police/
 ├── flask_app.py              # Main Flask application
-├── requirements-flask.txt    # Python dependencies
+├── requirements-flask.txt    # Python dependencies (includes PyTorch, Transformers)
+├── src/
+│   ├── data/
+│   │   └── styles.py         # Fashion style definitions (11 categories)
+│   └── scripts/
+│       ├── load_model.py     # SegFormer segmentation model
+│       ├── style_predictor.py # FashionCLIP style classifier
+│       └── classify_outfit.py # Combined inference pipeline
 ├── templates/
 │   ├── camera.html           # Camera capture page
 │   ├── results.html          # Results display page
@@ -66,7 +74,9 @@ fashion-police/
 
 ### 2. Results Page (`/results`)
 - Displays captured photo
-- Shows style predictions (currently dummy data)
+- Shows clothing segmentation overlay (colored regions with black face, white background)
+- Displays style predictions ranked by confidence
+- 11 fashion categories: Urban Streetwear, Formal Business, Casual Chic, etc.
 - Highlights top prediction
 - Option to provide feedback
 
@@ -85,12 +95,18 @@ fashion-police/
 - **Canvas API** - Overlay graphics and bounding boxes
 
 ### Backend
-- **Flask 3.0.0** - Lightweight Python web framework
+- **Flask 3.0.0** - Python web framework
+- **PyTorch 2.9+** - Deep learning framework (CPU-only)
+- **Transformers** - Hugging Face models library
+- **FashionCLIP** - Fashion-specific CLIP model for style classification
+- **SegFormer** - Semantic segmentation model for clothing regions
 - **Pillow** - Image processing
 
 ### Performance
-- Runs at 10-15 FPS on Raspberry Pi 5
-- ~3MB model download (cached after first load)
+- **Camera**: 10-15 FPS pose detection on Raspberry Pi 5
+- **ML Inference**: 3-5 seconds per image (CPU-only on Pi 5)
+- **Model Downloads**: ~500MB total (FashionCLIP + SegFormer, cached after first load)
+- **Models load at startup** to avoid delays during photo capture
 - Fullscreen optimized for portrait touchscreens
 
 ## Hardware Requirements
@@ -104,26 +120,40 @@ fashion-police/
 
 ⚠️ **Important**: USB touchscreens draw significant power. If your webcam shuts down when the touchscreen is connected, use a powered docking station to connect both peripherals.
 
-## API Integration (Future)
+## Machine Learning Models
 
-Currently returns dummy responses. To connect to a real inference API, modify `flask_app.py`:
+### Fashion Style Classification
+Uses **FashionCLIP** (patrickjohncyh/fashion-clip), a CLIP model fine-tuned for fashion:
+- Zero-shot classification using text-image similarity
+- 11 predefined style categories with text descriptions
+- Returns ranked predictions with confidence scores
+- Runs on CPU (no CUDA required)
 
-```python
-def get_dummy_response() -> dict:
-    # Replace with:
-    import requests
-    response = requests.post(
-        'http://your-api-server:8000/predict',
-        files={'image': image_data}
-    )
-    return response.json()
-```
+### Clothing Segmentation
+Uses **SegFormer** (mattmdjaga/segformer_b2_clothes) for semantic segmentation:
+- 18 clothing/body part classes (hat, upper-clothes, pants, face, etc.)
+- Generates colored overlay visualization
+- White background, black face for privacy
+- Helps isolate clothing regions from background
+
+### Style Categories
+1. Urban Streetwear
+2. Formal Business
+3. Casual Chic
+4. Sporty / Athleisure
+5. Vintage / Retro
+6. Bohemian
+7. Elegant Evening
+8. Preppy
+9. Punk / Alt
+10. Gothic
+11. Artsy / Expressive
 
 ## API Endpoints
 
 - `GET /` - Camera capture page
-- `POST /process_image` - Process captured image (returns dummy predictions)
-- `GET /results` - Display results page
+- `POST /process_image` - Process captured image with on-device ML inference
+- `GET /results` - Display results page with segmentation overlay and predictions
 - `GET /feedback` - Feedback collection page
 - `POST /submit_feedback` - Submit user feedback
 
@@ -138,7 +168,8 @@ Works best with:
 - JavaScript enabled
 - HTTPS connection OR localhost
 - User permission for camera access
-- Internet connection (first load only, to download AI model)
+- Internet connection (first run only, to download ML models ~500MB)
+- Python 3.11+ or 3.13 recommended for best compatibility
 
 ## Using the T-Pose Capture
 
@@ -172,10 +203,12 @@ Works best with:
 6. Check browser console for detection errors
 
 ### Slow Performance
-- Expected: 10-15 FPS on Raspberry Pi 5
-- Close other browser tabs to free up resources
+- **Camera**: Expected 10-15 FPS on Raspberry Pi 5
+- **ML Inference**: Expected 3-5 seconds per photo (CPU-only)
+- Models load at startup (may take 10-20 seconds on first launch)
+- Close other applications to free up RAM (models use ~2GB)
 - Ensure webcam resolution isn't too high (640x480 recommended)
-- AI model caches after first load (faster on subsequent uses)
+- AI models cache after first download (faster on subsequent runs)
 
 ### Camera Shuts Down
 - **Cause**: Insufficient USB power
