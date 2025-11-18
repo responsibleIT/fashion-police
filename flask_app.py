@@ -54,19 +54,19 @@ def process_image():
     image = Image.open(io.BytesIO(image_bytes))
     
     # Run FashionCLIP inference
-    predictions, overlay = classifier.classify(image)
+    predictions, display_overlay, anonymized_overlay = classifier.classify(image)
     
     # Generate record ID
     record_id = f"outfit_{int(time.time())}"
     
-    # Save anonymized overlay image to disk (ONLY the overlay, not original photo)
-    overlay_filename = f"{record_id}_overlay.jpg"
+    # Save ANONYMIZED overlay to disk (background white, face black, clothing original)
+    overlay_filename = f"{record_id}_anonymized.jpg"
     overlay_path = DATA_DIR / overlay_filename
-    overlay.save(overlay_path, format='JPEG', quality=95)
+    anonymized_overlay.save(overlay_path, format='JPEG', quality=95)
     
-    # Convert overlay to base64 for web display
+    # Convert DISPLAY overlay to base64 for web (with colored clothing overlay)
     overlay_buffer = io.BytesIO()
-    overlay.save(overlay_buffer, format='JPEG', quality=95)
+    display_overlay.save(overlay_buffer, format='JPEG', quality=95)
     overlay_base64 = base64.b64encode(overlay_buffer.getvalue()).decode('utf-8')
     
     # Build result structure

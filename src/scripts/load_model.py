@@ -36,7 +36,7 @@ class SegmentationModel:
             cls._model = AutoModelForSemanticSegmentation.from_pretrained("mattmdjaga/segformer_b2_clothes")
             cls._model.eval()
     
-    def segment(self, image: Image.Image) -> Tuple[np.ndarray, Image.Image]:
+    def segment(self, image: Image.Image) -> Tuple[np.ndarray, Image.Image, Image.Image]:
         inputs = self._processor(images=image, return_tensors="pt")
         with torch.no_grad():
             outputs = self._model(**inputs)
@@ -46,30 +46,40 @@ class SegmentationModel:
         )
         pred_seg = upsampled_logits.argmax(dim=1)[0].cpu().numpy().astype(np.uint8)
         
-        # Create overlay starting from original image
-        overlay = image.convert("RGB").copy()
-        overlay_arr = np.array(overlay)
+        # Create display overlay (with colored clothing) starting from original image
+        display_overlay = image.convert("RGB").copy()
+        display_arr = np.array(display_overlay)
         
-        # Make face (class 11) solid black
+        # Create anonymized overlay (only background and face colored)
+        anonymized_overlay = image.convert("RGB").copy()
+        anonymized_arr = np.array(anonymized_overlay)
+        
+        # Make face (class 11) solid black in both overlays
         face_mask = pred_seg == 11
-        overlay_arr[face_mask] = [0, 0, 0]
+        display_arr[face_mask] = [0, 0, 0]
+        anonymized_arr[face_mask] = [0, 0, 0]
         
-        # Make background (class 0) solid white
+        # Make background (class 0) solid white in both overlays
         bg_mask = pred_seg == 0
-        overlay_arr[bg_mask] = [255, 255, 255]
+        display_arr[bg_mask] = [255, 255, 255]
+        anonymized_arr[bg_mask] = [255, 255, 255]
         
-        # Blend other clothing regions with transparency
+        # For display overlay: blend clothing regions with transparency
         palette_arr = np.array(self.palette, dtype=np.uint8)
         colours = palette_arr[pred_seg % len(palette_arr)]
         colour_image = Image.fromarray(colours, mode="RGB")
         
-        # Apply transparent overlay only to non-face, non-background regions
+        # Apply transparent overlay only to non-face, non-background regions (display only)
         other_mask = ~(face_mask | bg_mask)
         if other_mask.any():
-            overlay_img = Image.fromarray(overlay_arr)
-            blended = Image.blend(overlay_img, colour_image, alpha=0.4)
+            display_img = Image.fromarray(display_arr)
+            blended = Image.blend(display_img, colour_image, alpha=0.4)
             blended_arr = np.array(blended)
-            overlay_arr[other_mask] = blended_arr[other_mask]
+            display_arr[other_mask] = blended_arr[other_mask]
         
-        overlay = Image.fromarray(overlay_arr)
-        return pred_seg, overlay
+        # For anonymized overlay: keep original clothing (no coloring)
+        # anonymized_arr already has original image for clothing regions
+        
+        display_overlay = Image.fromarray(display_arr)
+        anonymized_overlay = Image.fromarray(anonymized_arr)
+        return pred_seg, display_overlay, anonymized_overlay

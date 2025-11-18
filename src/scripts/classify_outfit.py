@@ -37,7 +37,7 @@ class OutfitClassifier:
         self.style_predictor = StylePredictor()
         print("Outfit classifier ready!")
 
-    def classify(self, image: Image.Image) -> Tuple[List[Dict], Image.Image]:
+    def classify(self, image: Image.Image) -> Tuple[List[Dict], Image.Image, Image.Image]:
         """
         Classify the outfit in the image into fashion styles.
 
@@ -55,14 +55,18 @@ class OutfitClassifier:
                 - 'score': float (similarity score 0-1)
                 - 'description': str (style description)
         
-        overlay : PIL.Image
+        display_overlay : PIL.Image
             A visualisation of the segmentation mask overlaid on the
-            original image with colored clothing regions.
+            original image with colored clothing regions (for web display).
+        
+        anonymized_overlay : PIL.Image
+            A privacy-preserving version with only background (white) and
+            face (black) colored, keeping clothing as original (for storage).
         """
-        # Run segmentation to get overlay (we ignore the mask itself)
-        _, overlay = self.seg_model.segment(image)
+        # Run segmentation to get both overlays
+        _, display_overlay, anonymized_overlay = self.seg_model.segment(image)
         
         # Run style prediction
         predictions = self.style_predictor.predict(image)
         
-        return predictions, overlay
+        return predictions, display_overlay, anonymized_overlay
