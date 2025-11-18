@@ -45,8 +45,31 @@ class SegmentationModel:
             logits, size=image.size[::-1], mode="bilinear", align_corners=False
         )
         pred_seg = upsampled_logits.argmax(dim=1)[0].cpu().numpy().astype(np.uint8)
+        
+        # Create overlay starting from original image
+        overlay = image.convert("RGB").copy()
+        overlay_arr = np.array(overlay)
+        
+        # Make face (class 11) solid black
+        face_mask = pred_seg == 11
+        overlay_arr[face_mask] = [0, 0, 0]
+        
+        # Make background (class 0) solid white
+        bg_mask = pred_seg == 0
+        overlay_arr[bg_mask] = [255, 255, 255]
+        
+        # Blend other clothing regions with transparency
         palette_arr = np.array(self.palette, dtype=np.uint8)
         colours = palette_arr[pred_seg % len(palette_arr)]
         colour_image = Image.fromarray(colours, mode="RGB")
-        overlay = Image.blend(image.convert("RGB"), colour_image, alpha=0.4)
+        
+        # Apply transparent overlay only to non-face, non-background regions
+        other_mask = ~(face_mask | bg_mask)
+        if other_mask.any():
+            overlay_img = Image.fromarray(overlay_arr)
+            blended = Image.blend(overlay_img, colour_image, alpha=0.4)
+            blended_arr = np.array(blended)
+            overlay_arr[other_mask] = blended_arr[other_mask]
+        
+        overlay = Image.fromarray(overlay_arr)
         return pred_seg, overlay
