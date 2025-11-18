@@ -9,14 +9,21 @@ import io
 from PIL import Image
 import time
 import secrets
+from pathlib import Path
 
 from src.scripts.classify_outfit import OutfitClassifier
+from src.database import FashionDB
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 
 # Store results in memory (could use Redis/DB for production)
 results_store = {}
+
+# Initialize database and storage directories
+db = FashionDB("data/fashion_police.db")
+DATA_DIR = Path("data/images")
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Load the outfit classifier at startup
 print("Initializing Fashion Police ML models...")
@@ -52,7 +59,12 @@ def process_image():
     # Generate record ID
     record_id = f"outfit_{int(time.time())}"
     
-    # Convert overlay image to base64
+    # Save anonymized overlay image to disk (ONLY the overlay, not original photo)
+    overlay_filename = f"{record_id}_overlay.jpg"
+    overlay_path = DATA_DIR / overlay_filename
+    overlay.save(overlay_path, format='JPEG', quality=95)
+    
+    # Convert overlay to base64 for web display
     overlay_buffer = io.BytesIO()
     overlay.save(overlay_buffer, format='JPEG', quality=95)
     overlay_base64 = base64.b64encode(overlay_buffer.getvalue()).decode('utf-8')
@@ -75,7 +87,15 @@ def process_image():
         }
     }
     
-    # Store result
+    # Save prediction to database
+    db.save_prediction(
+        record_id=record_id,
+        image_path=str(overlay_path),
+        overlay_path=str(overlay_path),
+        predictions=predictions
+    )
+    
+    # Store result in memory for session
     results_store[record_id] = {
         'result': result,
         'image': image_data,
@@ -133,10 +153,20 @@ def submit_feedback():
     if not record_id:
         return jsonify({'error': 'No active session'}), 400
     
-    # Store feedback (dummy for now)
-    time.sleep(0.5)  # Simulate network delay
+    # Save user correction to database
+    success = db.save_feedback(record_id, style)
     
-    return jsonify({'success': True, 'style': style})
+    if success:
+        print(f"Feedback saved: {record_id} -> {style}")
+    
+    return jsonify({'success': success, 'style': style})
+
+
+@app.route('/stats')
+def statistics():
+    """Display statistics dashboard"""
+    stats = db.get_statistics()
+    return render_template('stats.html', stats=stats)
 
 
 if __name__ == '__main__':
