@@ -21,7 +21,7 @@ app.secret_key = secrets.token_hex(16)
 results_store = {}
 
 # Initialize database and storage directories
-db = FashionDB("data/fashion_police.db")
+db = FashionDB("data/predictions.json")
 DATA_DIR = Path("data/images")
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 

@@ -3,43 +3,37 @@ Database module for Fashion Police
 Stores predictions and user feedback for model improvement
 """
 
-import sqlite3
+import json
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Optional
-import json
 
 
 class FashionDB:
-    """SQLite database handler for storing predictions and feedback"""
+    """JSON-based database handler for storing predictions and feedback"""
     
-    def __init__(self, db_path: str = "data/fashion_police.db"):
+    def __init__(self, db_path: str = "data/predictions.json"):
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
     
     def _init_db(self):
-        """Initialize database schema"""
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            
-            # Table for predictions
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS predictions (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    record_id TEXT UNIQUE NOT NULL,
-                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                    image_path TEXT NOT NULL,
-                    overlay_path TEXT NOT NULL,
-                    top_prediction TEXT NOT NULL,
-                    top_confidence REAL NOT NULL,
-                    all_predictions TEXT NOT NULL,
-                    user_correction TEXT,
-                    feedback_timestamp DATETIME
-                )
-            """)
-            
-            conn.commit()
+        """Initialize JSON file if it doesn't exist"""
+        if not self.db_path.exists():
+            self._write_data({"predictions": []})
+    
+    def _read_data(self) -> Dict:
+        """Read data from JSON file"""
+        try:
+            with open(self.db_path, 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {"predictions": []}
+    
+    def _write_data(self, data: Dict):
+        """Write data to JSON file"""
+        with open(self.db_path, 'w') as f:
+            json.dump(data, f, indent=2)
     
     def save_prediction(
         self,
@@ -61,21 +55,22 @@ class FashionDB:
             True if successful
         """
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT INTO predictions 
-                    (record_id, image_path, overlay_path, top_prediction, top_confidence, all_predictions)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    record_id,
-                    image_path,
-                    overlay_path,
-                    predictions[0]["name"],
-                    predictions[0]["score"],
-                    json.dumps(predictions)
-                ))
-                conn.commit()
+            data = self._read_data()
+            
+            prediction_record = {
+                "record_id": record_id,
+                "timestamp": datetime.now().isoformat(),
+                "image_path": image_path,
+                "overlay_path": overlay_path,
+                "top_prediction": predictions[0]["name"],
+                "top_confidence": predictions[0]["score"],
+                "all_predictions": predictions,
+                "user_correction": None,
+                "feedback_timestamp": None
+            }
+            
+            data["predictions"].append(prediction_record)
+            self._write_data(data)
             return True
         except Exception as e:
             print(f"Error saving prediction: {e}")
@@ -93,14 +88,15 @@ class FashionDB:
             True if successful
         """
         try:
-            with sqlite3.connect(self.db_path) as conn:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    UPDATE predictions 
-                    SET user_correction = ?, feedback_timestamp = CURRENT_TIMESTAMP
-                    WHERE record_id = ?
-                """, (user_correction, record_id))
-                conn.commit()
+            data = self._read_data()
+            
+            for prediction in data["predictions"]:
+                if prediction["record_id"] == record_id:
+                    prediction["user_correction"] = user_correction
+                    prediction["feedback_timestamp"] = datetime.now().isoformat()
+                    break
+            
+            self._write_data(data)
             return True
         except Exception as e:
             print(f"Error saving feedback: {e}")
@@ -108,61 +104,49 @@ class FashionDB:
     
     def get_prediction(self, record_id: str) -> Optional[Dict]:
         """Get a prediction by record_id"""
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT * FROM predictions WHERE record_id = ?
-            """, (record_id,))
-            row = cursor.fetchone()
-            if row:
-                return dict(row)
-            return None
+        data = self._read_data()
+        for prediction in data["predictions"]:
+            if prediction["record_id"] == record_id:
+                return prediction
+        return None
     
     def get_all_predictions(self, limit: int = 100) -> List[Dict]:
         """Get all predictions, most recent first"""
-        with sqlite3.connect(self.db_path) as conn:
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT * FROM predictions 
-                ORDER BY timestamp DESC 
-                LIMIT ?
-            """, (limit,))
-            return [dict(row) for row in cursor.fetchall()]
+        data = self._read_data()
+        predictions = data["predictions"]
+        # Sort by timestamp descending
+        predictions.sort(key=lambda x: x["timestamp"], reverse=True)
+        return predictions[:limit]
     
     def get_statistics(self) -> Dict:
         """Get database statistics"""
-        with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            
-            cursor.execute("SELECT COUNT(*) FROM predictions")
-            total_predictions = cursor.fetchone()[0]
-            
-            cursor.execute("SELECT COUNT(*) FROM predictions WHERE user_correction IS NOT NULL")
-            total_feedback = cursor.fetchone()[0]
-            
-            cursor.execute("""
-                SELECT top_prediction, COUNT(*) as count 
-                FROM predictions 
-                GROUP BY top_prediction 
-                ORDER BY count DESC
-            """)
-            top_predictions = cursor.fetchall()
-            
-            cursor.execute("""
-                SELECT user_correction, COUNT(*) as count 
-                FROM predictions 
-                WHERE user_correction IS NOT NULL
-                GROUP BY user_correction 
-                ORDER BY count DESC
-            """)
-            corrections = cursor.fetchall()
-            
-            return {
-                "total_predictions": total_predictions,
-                "total_feedback": total_feedback,
-                "feedback_rate": total_feedback / total_predictions if total_predictions > 0 else 0,
-                "top_predictions": top_predictions,
-                "user_corrections": corrections
-            }
+        data = self._read_data()
+        predictions = data["predictions"]
+        
+        total_predictions = len(predictions)
+        total_feedback = sum(1 for p in predictions if p["user_correction"] is not None)
+        
+        # Count top predictions
+        top_pred_counts = {}
+        for p in predictions:
+            style = p["top_prediction"]
+            top_pred_counts[style] = top_pred_counts.get(style, 0) + 1
+        
+        top_predictions = sorted(top_pred_counts.items(), key=lambda x: x[1], reverse=True)
+        
+        # Count user corrections
+        correction_counts = {}
+        for p in predictions:
+            if p["user_correction"]:
+                style = p["user_correction"]
+                correction_counts[style] = correction_counts.get(style, 0) + 1
+        
+        corrections = sorted(correction_counts.items(), key=lambda x: x[1], reverse=True)
+        
+        return {
+            "total_predictions": total_predictions,
+            "total_feedback": total_feedback,
+            "feedback_rate": total_feedback / total_predictions if total_predictions > 0 else 0,
+            "top_predictions": top_predictions,
+            "user_corrections": corrections
+        }

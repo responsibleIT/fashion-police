@@ -39,7 +39,7 @@ fashion-police/
 ├── flask_app.py              # Main Flask application
 ├── requirements-flask.txt    # Python dependencies (includes PyTorch, Transformers)
 ├── data/                     # Data storage (gitignored)
-│   ├── fashion_police.db     # SQLite database (predictions + feedback)
+│   ├── predictions.json      # JSON database (predictions + feedback)
 │   └── images/               # Anonymized overlay images
 ├── src/
 │   ├── database.py           # Database handler
@@ -179,7 +179,7 @@ The application stores data locally on the Raspberry Pi for model improvement:
 - ❌ Any personal information
 
 ### Storage Location
-- **Database**: `data/fashion_police.db` (SQLite)
+- **Database**: `data/predictions.json` (JSON file)
 - **Images**: `data/images/` (anonymized overlays only)
 - **Note**: The `data/` directory is gitignored and never committed
 
