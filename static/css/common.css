@@ -61,11 +61,6 @@ button {
   color: white;
 }
 
-.btn-primary:hover {
-  background: #5568d3;
-  transform: translateY(-2px);
-}
-
 .btn-success {
   text-transform: uppercase;
   background: #cc0000;
@@ -74,17 +69,7 @@ button {
   font-size: clamp(2rem, 5vw, 7rem);
 }
 
-.btn-success:hover {
-  background: #38a169;
-  transform: translateY(-2px);
-}
-
 .btn-secondary {
   background: #718096;
   color: white;
-}
-
-.btn-secondary:hover {
-  background: #4a5568;
-  transform: translateY(-2px);
 }
