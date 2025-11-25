@@ -1,75 +1,90 @@
+@font-face {
+  font-family: Domus;
+  src: url("../fonts/domus.woff2");
+}
 /* Common styles shared across all pages */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Domus;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #3954cf 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #3954cf 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+
+button.hidden{
+    display: none !important;
+}
+button.btn-transparent {
+  background-color: transparent;
+  text-transform: uppercase;
 }
 
 .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 15px;
-    padding: 30px;
-    position: relative;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 h2 {
-    color: #333;
-    margin-bottom: 15px;
+  color: #333;
+  margin-bottom: 15px;
 }
 
 /* Button styles */
 button {
-    padding: 15px 30px;
-    font-size: clamp(1.75rem, 3vw, 2rem);
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-weight: bold;
+  padding: 15px 30px;
+  font-size: clamp(1.75rem, 3vw, 2rem);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
 }
 
 .btn-primary {
-    background: #3954cf;
-    color: white;
+  background: #3954cf;
+  color: white;
 }
 
 .btn-primary:hover {
-    background: #5568d3;
-    transform: translateY(-2px);
+  background: #5568d3;
+  transform: translateY(-2px);
 }
 
 .btn-success {
-    background: #48bb78;
-    color: white;
+  text-transform: uppercase;
+  background: #cc0000;
+  border: 4px solid black;
+  color: white;
+  font-size: clamp(2rem, 5vw, 7rem);
 }
 
 .btn-success:hover {
-    background: #38a169;
-    transform: translateY(-2px);
+  background: #38a169;
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
-    background: #718096;
-    color: white;
+  background: #718096;
+  color: white;
 }
 
 .btn-secondary:hover {
-    background: #4a5568;
-    transform: translateY(-2px);
+  background: #4a5568;
+  transform: translateY(-2px);
 }

@@ -5,21 +5,29 @@ body,
 }
 
 body {
-    background: unset !important;
-    padding: unset !important;
+  background: unset !important;
+  padding: unset !important;
 }
 
 h1.title {
   margin: unset;
   color: #f6f6f6;
-  font-size: clamp(3rem, 5vw, 6.5rem);
+  text-transform: uppercase;
+    font-size: clamp(2rem, 7.5vw, 10rem);
+
+}
+
+h2.subtitle{
+  color: #f6f6f6;
+  font-size: clamp(1.75rem, 5vw, 7rem);
+  text-transform: uppercase;
+  text-align: center;
 }
 
 .container {
   background: transparent !important;
   box-shadow: none !important;
   display: grid;
-  align-items: center;
   padding: 1.875rem 0 !important;
 }
 /* Results page specific styles */
@@ -58,11 +66,6 @@ h1.title {
   padding: 2.25rem;
   width: 100%;
   background: rgba(0, 0, 0, 1);
-}
-
-.predictions-section h2 {
-  color: #333;
-  margin-bottom: 15px;
 }
 
 .top-prediction {
