@@ -217,6 +217,17 @@ async function drawDetectionLoop() {
                 let maxX = Math.max(...keypoints.map(kp => kp.x));
                 let maxY = Math.max(...keypoints.map(kp => kp.y));
 
+                // Add padding above head (eyes are the highest keypoint, not top of head)
+                const headPadding = (maxY - minY) * 0.15; // 15% of body height
+                minY = Math.max(0, minY - headPadding);
+                
+                // Add some side and bottom padding for better framing
+                const sidePadding = (maxX - minX) * 0.1; // 10% of width
+                const bottomPadding = (maxY - minY) * 0.05; // 5% of height
+                minX = Math.max(0, minX - sidePadding);
+                maxX = Math.min(canvas.width, maxX + sidePadding);
+                maxY = Math.min(canvas.height, maxY + bottomPadding);
+
                 // Check if T-pose is detected
                 const isPoseTrigger = checkCapturePose(pose);
                 
@@ -281,36 +292,49 @@ async function drawDetectionLoop() {
     requestAnimationFrame(drawDetectionLoop);
 }
 
-// Check if user is in the capture pose (T-pose: arms extended horizontally)
+// Check if user is in the capture pose (hand at eye level)
 function checkCapturePose(pose) {
     const keypoints = pose.keypoints;
     
-    // Get relevant keypoints for T-pose
-    const leftShoulder = keypoints.find(kp => kp.name === 'left_shoulder');
-    const rightShoulder = keypoints.find(kp => kp.name === 'right_shoulder');
-    const leftElbow = keypoints.find(kp => kp.name === 'left_elbow');
-    const rightElbow = keypoints.find(kp => kp.name === 'right_elbow');
+    // Get relevant keypoints
+    const leftEye = keypoints.find(kp => kp.name === 'left_eye');
+    const rightEye = keypoints.find(kp => kp.name === 'right_eye');
+    const nose = keypoints.find(kp => kp.name === 'nose');
     const leftWrist = keypoints.find(kp => kp.name === 'left_wrist');
     const rightWrist = keypoints.find(kp => kp.name === 'right_wrist');
     
-    // Check if all keypoints are detected with good confidence
-    if (!leftShoulder || !rightShoulder || !leftElbow || !rightElbow || !leftWrist || !rightWrist) return false;
-    if (leftShoulder.score < 0.3 || rightShoulder.score < 0.3 || 
-        leftElbow.score < 0.3 || rightElbow.score < 0.3 ||
-        leftWrist.score < 0.3 || rightWrist.score < 0.3) return false;
+    // Check if keypoints are detected with good confidence
+    if (!leftWrist || !rightWrist) return false;
+    if (leftWrist.score < 0.3 || rightWrist.score < 0.3) return false;
     
-    // For T-pose, check that:
-    // 1. Both arms are extended horizontally (elbows and wrists are roughly at shoulder height)
-    // 2. Arms are extended outward (wrists are far from shoulders horizontally)
+    // Calculate eye level (use average of both eyes if available, otherwise use nose as reference)
+    let eyeLevel;
+    if (leftEye && rightEye && leftEye.score > 0.3 && rightEye.score > 0.3) {
+        eyeLevel = (leftEye.y + rightEye.y) / 2;
+    } else if (nose && nose.score > 0.3) {
+        eyeLevel = nose.y - 20; // Eyes are typically slightly above nose
+    } else {
+        return false;
+    }
     
-    const shoulderHeight = (leftShoulder.y + rightShoulder.y) / 2;
-    const leftArmHorizontal = Math.abs(leftWrist.y - shoulderHeight) < 80 && Math.abs(leftElbow.y - shoulderHeight) < 80;
-    const rightArmHorizontal = Math.abs(rightWrist.y - shoulderHeight) < 80 && Math.abs(rightElbow.y - shoulderHeight) < 80;
+    // Create a tolerance band around eye level (±60 pixels above, 100 pixels below)
+    const toleranceAbove = 60;
+    const toleranceBelow = 100;
+    const eyeLevelTop = eyeLevel - toleranceAbove;
+    const eyeLevelBottom = eyeLevel + toleranceBelow;
     
-    const leftArmExtended = Math.abs(leftWrist.x - leftShoulder.x) > 20;
-    const rightArmExtended = Math.abs(rightWrist.x - rightShoulder.x) > 20;
+    // Check if left wrist is at eye level
+    const leftWristAtEyeLevel = 
+        leftWrist.y >= eyeLevelTop && 
+        leftWrist.y <= eyeLevelBottom;
     
-    return leftArmHorizontal && rightArmHorizontal && leftArmExtended && rightArmExtended;
+    // Check if right wrist is at eye level
+    const rightWristAtEyeLevel = 
+        rightWrist.y >= eyeLevelTop && 
+        rightWrist.y <= eyeLevelBottom;
+    
+    // Trigger if either hand is at eye level
+    return leftWristAtEyeLevel || rightWristAtEyeLevel;
 }
 
 async function analyzePhoto() {
