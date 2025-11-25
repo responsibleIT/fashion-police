@@ -24,6 +24,7 @@
   </head>
   <body>
     <div class="container">
+      <h1 class="title">CORRECT ME IF I'M WRONG</h1>
       <img
         class="display-image"
         src="data:image/jpeg;base64,{{ image_data }}"
@@ -40,10 +41,12 @@
         </div>
       </div>
 
-      <div id="success-message"></div>
-      <div class="controls">
-        <button class="back-button btn" onclick="window.location.href='/'">
-          ← Back to Start
+      <div id="success-message">
+        <button
+          class="back-button btn btn-success"
+          onclick="window.location.href='/'"
+        >
+          QUIT
         </button>
       </div>
     </div>

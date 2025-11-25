@@ -30,7 +30,7 @@
   </head>
   <body>
     <div class="container">
-      <h1>👮 Fashion Police</h1>
+      <h1>CORRECT ME IF I'M WRONG</h1>
 
       <div id="camera-container">
         <canvas id="canvas"></canvas>
@@ -42,15 +42,15 @@
 
       <div class="controls">
         <button id="start-camera" class="btn-primary" onclick="startCamera()">
-          📷 Start Camera
+          Start Camera
         </button>
         <button
           id="capture"
-          class="btn-success"
+          class="btn-success hidden capture-btn"
           onclick="capturePhoto()"
           style="display: none"
         >
-          📸 Capture Photo
+          CAPTURE PHOTO
         </button>
         <button
           id="retake"
@@ -58,7 +58,7 @@
           onclick="retakePhoto()"
           style="display: none"
         >
-          🔄 Retake
+          Retake
         </button>
         <button
           id="analyze"
@@ -66,9 +66,10 @@
           onclick="analyzePhoto()"
           style="display: none"
         >
-          ✅ Analyze Style
+          Analyze Style
         </button>
       </div>
+      <img class="instruction" src="/static/assets/button_take.png" alt="">
     </div>
   </body>
 </html>

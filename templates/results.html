@@ -15,6 +15,7 @@
   </head>
   <body>
     <div class="container">
+      <h1 class="title">CORRECT ME IF I'M WRONG</h1>
       <img
         class="display-image"
         src="data:image/jpeg;base64,{{ image_data }}"
@@ -23,13 +24,13 @@
       <div class="results-grid">
         <div class="predictions-section">
           <div class="top-prediction">
-            <h1 class="title">{{ result.top_prediction.name }}</h1>
+            <h2 class="subtitle">{{ result.top_prediction.name }}</h2>
           </div>
           <button
-            class="btn-primary btn"
+            class="btn-primary btn btn-success"
             onclick="window.location.href='/feedback'"
           >
-            ❓ Correct me if I am wrong
+            Correct me if I am wrong
           </button>
         </div>
 
@@ -42,8 +43,8 @@
         </div>
       </div>
       <div class="controls">
-        <button class="btn-secondary btn" onclick="window.location.href='/'">
-          📸 Take Another Photo
+        <button class="btn-secondary btn btn-transparent" onclick="window.location.href='/'">
+          Take Another Photo
         </button>
       </div>
     </div>
