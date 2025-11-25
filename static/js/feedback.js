@@ -14,7 +14,7 @@ async function submitFeedback(style) {
             
             // Show success message
             const successMsg = document.getElementById('success-message');
-            successMsg.textContent = `✅ Saved! You selected: ${style}`;
+            successMsg.insertAdjacentText("afterBegin", `${style}`);
             successMsg.style.display = 'block';
             
             // Disable all buttons

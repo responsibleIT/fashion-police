@@ -100,8 +100,6 @@ async function startCamera() {
         document.getElementById('retake').style.display = 'none';
         document.getElementById('analyze').style.display = 'none';
 
-        showStatus('Camera ready! Position yourself inside the box and click Capture.', 'info');
-
         console.log('Camera started successfully');
     } catch (error) {
         console.error('Camera error:', error);
@@ -218,7 +216,7 @@ async function drawDetectionLoop() {
                 let maxY = Math.max(...keypoints.map(kp => kp.y));
 
                 // Add padding above head (eyes are the highest keypoint, not top of head)
-                const headPadding = (maxY - minY) * 0.15; // 15% of body height
+                const headPadding = (maxY - minY) * 0.25; // 15% of body height
                 minY = Math.max(0, minY - headPadding);
                 
                 // Add some side and bottom padding for better framing
@@ -241,9 +239,9 @@ async function drawDetectionLoop() {
                     const progress = Math.min(holdTime / POSE_HOLD_DURATION, 1.0);
                     
                     // Draw bounding box in yellow/orange when pose detected
-                    ctx.lineWidth = 4;
-                    ctx.strokeStyle = progress < 1.0 ? '#FFA500' : '#00FF00';
-                    ctx.setLineDash([12, 8]);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = progress < 1.0 ? '#00FF00' : '#fffb00';
+                    ctx.setLineDash([2, 6]);
                     ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
                     ctx.setLineDash([]);
                     
@@ -251,12 +249,12 @@ async function drawDetectionLoop() {
                     const barWidth = 200;
                     const barHeight = 20;
                     const barX = (canvas.width - barWidth) / 2;
-                    const barY = canvas.height - 60;
+                    const barY = 60;
                     
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
                     ctx.fillRect(barX, barY, barWidth, barHeight);
                     
-                    ctx.fillStyle = '#FFA500';
+                    ctx.fillStyle = '#fffb00';
                     ctx.fillRect(barX, barY, barWidth * progress, barHeight);
                     
                     ctx.strokeStyle = '#FFFFFF';
@@ -276,9 +274,9 @@ async function drawDetectionLoop() {
                     poseDetectedForCapture = false;
                     
                     // Draw normal green bounding box
-                    ctx.lineWidth = 4;
-                    ctx.strokeStyle = '#00FF00';
-                    ctx.setLineDash([12, 8]);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#fffb00';
+                    ctx.setLineDash([2, 6]);
                     ctx.strokeRect(minX, minY, maxX - minX, maxY - minY);
                     ctx.setLineDash([]);
                 }
