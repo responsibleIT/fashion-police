@@ -1,53 +1,51 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fashion Police - Results</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/results.css') }}">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/results.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/common.css') }}"
+    />
+  </head>
+  <body>
     <div class="container">
-        <h1>Your Style Results ✨</h1>
-        
-        <div class="results-grid">
-            <div class="image-section">
-                <h2>Your Photo</h2>
-                <img src="data:image/jpeg;base64,{{ image_data }}" alt="Your outfit">
-                
-                <h2 style="margin-top: 30px;">Segmentation Map</h2>
-                <img src="data:image/jpeg;base64,{{ overlay_data }}" alt="Clothing segmentation overlay">
-                
-                <div style="margin-top: 20px;">
-                    <button class="btn-secondary" onclick="window.location.href='/'">📸 Take Another Photo</button>
-                </div>
-            </div>
-            
-            <div class="predictions-section">
-                <h2>Top Prediction</h2>
-                <div class="top-prediction">
-                    <h3>{{ result.top_prediction.name }}</h3>
-                    <p>{{ result.top_prediction.description }}</p>
-                    <span class="confidence">{{ "%.1f"|format(result.top_prediction.confidence * 100) }}% confident</span>
-                </div>
-                
-                <div class="other-predictions">
-                    <h2>Other Matches</h2>
-                    {% for pred in result.predictions[1:4] %}
-                    <div class="prediction-item">
-                        <strong>{{ pred.name }}</strong>
-                        <span class="conf">{{ "%.1f"|format(pred.confidence * 100) }}%</span>
-                        <p style="margin-top: 5px; color: #718096;">{{ pred.description }}</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+      <img
+        class="display-image"
+        src="data:image/jpeg;base64,{{ image_data }}"
+        alt="Your outfit"
+      />
+      <div class="results-grid">
+        <div class="predictions-section">
+          <div class="top-prediction">
+            <h1 class="title">{{ result.top_prediction.name }}</h1>
+          </div>
+          <button
+            class="btn-primary btn"
+            onclick="window.location.href='/feedback'"
+          >
+            ❓ Correct me if I am wrong
+          </button>
         </div>
-        
-        <div class="controls">
-            <button class="btn-primary" onclick="window.location.href='/feedback'">❓ Correct me if I am wrong</button>
+
+        <div class="segmentation">
+          <h2 style="margin-top: 30px">Segmentation Map</h2>
+          <img
+            src="data:image/jpeg;base64,{{ overlay_data }}"
+            alt="Clothing segmentation overlay"
+          />
         </div>
+      </div>
+      <div class="controls">
+        <button class="btn-secondary btn" onclick="window.location.href='/'">
+          📸 Take Another Photo
+        </button>
+      </div>
     </div>
-</body>
+  </body>
 </html>
