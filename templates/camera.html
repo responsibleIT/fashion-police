@@ -38,7 +38,7 @@
         <img id="preview" alt="Preview" />
       </div>
 
-      <div id="status"></div>
+      <div id="status hidden"></div>
 
       <div class="controls">
         <button id="start-camera" class="btn-primary" onclick="startCamera()">
@@ -53,14 +53,6 @@
           CAPTURE PHOTO
         </button>
         <button
-          id="retake"
-          class="btn-secondary"
-          onclick="retakePhoto()"
-          style="display: none"
-        >
-          Retake
-        </button>
-        <button
           id="analyze"
           class="btn-success"
           onclick="analyzePhoto()"
@@ -68,8 +60,16 @@
         >
           Analyze Style
         </button>
+        <button
+          id="retake"
+          class="btn-secondary"
+          onclick="retakePhoto()"
+          style="display: none"
+        >
+          RETAKE
+        </button>
       </div>
-      <img class="instruction" src="/static/assets/button_take.png" alt="">
+      <img class="instruction" src="/static/assets/button_take.png" alt="" />
     </div>
   </body>
 </html>
