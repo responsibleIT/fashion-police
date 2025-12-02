@@ -20,17 +20,21 @@ A Flask web application that runs on Raspberry Pi with on-device ML inference. C
 ```bash
 python -m venv env_name
 ```
-### 2. Install Dependencies
+### 2. Activate env
+```bash
+source env/bin/activate
+```
+### 3. Install Dependencies
 ```bash
 pip install -r requirements-flask.txt
 ```
 
-### 3. Run the Application
+### 4. Run the Application
 ```bash
 python flask_app.py
 ```
 
-### 4. Access the App
+### 5. Access the App
 - **On Raspberry Pi**: http://localhost:5000
 - **From another device**: http://PI_IP_ADDRESS:5000
 
