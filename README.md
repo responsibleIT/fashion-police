@@ -38,7 +38,11 @@ python flask_app.py
 fashion-police/
 ├── flask_app.py              # Main Flask application
 ├── requirements-flask.txt    # Python dependencies (includes PyTorch, Transformers)
+├── data/                     # Data storage (gitignored)
+│   ├── predictions.json      # JSON database (predictions + feedback)
+│   └── images/               # Anonymized overlay images
 ├── src/
+│   ├── database.py           # Database handler
 │   ├── data/
 │   │   └── styles.py         # Fashion style definitions (11 categories)
 │   └── scripts/
@@ -48,7 +52,8 @@ fashion-police/
 ├── templates/
 │   ├── camera.html           # Camera capture page
 │   ├── results.html          # Results display page
-│   └── feedback.html         # User feedback page
+│   ├── feedback.html         # User feedback page
+│   └── stats.html            # Statistics dashboard
 └── static/
     ├── css/
     │   ├── common.css        # Shared styles
@@ -149,13 +154,49 @@ Uses **SegFormer** (mattmdjaga/segformer_b2_clothes) for semantic segmentation:
 10. Gothic
 11. Artsy / Expressive
 
-## API Endpoints
+## Application Routes
 
 - `GET /` - Camera capture page
 - `POST /process_image` - Process captured image with on-device ML inference
 - `GET /results` - Display results page with segmentation overlay and predictions
 - `GET /feedback` - Feedback collection page
 - `POST /submit_feedback` - Submit user feedback
+- `GET /stats` - View statistics dashboard (predictions, feedback, trends)
+
+## Data Storage & Privacy
+
+The application stores data locally on the Raspberry Pi for model improvement:
+
+### What Gets Stored
+- **Anonymized images only**: Segmentation overlay images (with black face, white background)
+- **Predictions**: Model's style classifications with confidence scores
+- **User feedback**: Corrections when users indicate the model was wrong
+- **Metadata**: Timestamps, record IDs
+
+### What Does NOT Get Stored
+- ❌ Original photos (discarded after processing)
+- ❌ Identifiable faces (replaced with solid black in overlay)
+- ❌ Any personal information
+
+### Storage Location
+- **Database**: `data/predictions.json` (JSON file)
+- **Images**: `data/images/` (anonymized overlays only)
+- **Note**: The `data/` directory is gitignored and never committed
+
+### Viewing Statistics
+Access the statistics dashboard at `http://PI_IP:5000/stats` to see:
+- Total predictions made
+- User feedback rate
+- Most common style predictions
+- User correction patterns
+
+### Managing Data
+To clear all stored data:
+```bash
+rm -rf data/
+```
+
+The database and image directory will be recreated on next run.
 
 ## Browser Compatibility
 
