@@ -39,7 +39,7 @@
   letter-spacing: 0.05em;
 }
 
-.style-button:not(:disabled):hover {
+.style-button:not(:disabled):active {
   border-color: #3954cf;
   background: #f7fafc;
   color: black;
