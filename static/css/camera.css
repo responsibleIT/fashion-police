@@ -13,7 +13,6 @@ body {
   height: 100vh;
   margin: 0;
   padding: 0;
-  display: flex;
   flex-direction: column;
 }
 
@@ -123,6 +122,10 @@ canvas {
   bottom: 5%;
   left: 50%;
   transform: translateX(-50%);
+  background: none;
+  display: flex;
+  align-items: center;
+  place-content: center;
 }
 
 .spinner {
