@@ -79,7 +79,7 @@ canvas {
   pointer-events: none;
 }
 
-.hidden{
+.hidden {
   display: none !important;
 }
 
@@ -129,16 +129,21 @@ canvas {
   position: fixed;
   bottom: 5%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, 200%);
   background: none;
   display: flex;
   align-items: center;
   place-content: center;
+  animation: initial-down 1s ease forwards;
+}
+
+.instruction img {
+  animation: pulse 6s 1s ease infinite;
 }
 
 .spinner {
-  border: .375rem solid #f3f3f3;
-  border-top: .375rem solid #3954cf;
+  border: 0.375rem solid #f3f3f3;
+  border-top: 0.375rem solid #3954cf;
   border-radius: 50%;
   width: 5rem;
   width: min(10vw, 5rem);
@@ -153,5 +158,33 @@ canvas {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes initial-down {
+  to {
+    transform: translate(-50%, 0%);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  25% {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  50% {
+    transform: scale(1);
+  }
+
+  75% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+
+  100% {
+    transform: scale(1);
   }
 }
