@@ -75,6 +75,12 @@ canvas {
   z-index: 3;
   object-fit: cover;
   transform: scaleX(-1); /* Flip horizontally for mirror effect */
+  cursor: none;
+  pointer-events: none;
+}
+
+.hidden{
+  display: none !important;
 }
 
 .controls {
