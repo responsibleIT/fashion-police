@@ -22,7 +22,7 @@ python -m venv env_name
 ```
 ### 2. Activate env
 ```bash
-source env/bin/activate
+source env_name/bin/activate
 ```
 ### 3. Install Dependencies
 ```bash
