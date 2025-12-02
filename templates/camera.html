@@ -38,7 +38,7 @@
         <img id="preview" alt="Preview" />
       </div>
 
-      <div id="status hidden"></div>
+      <div id="status"></div>
 
       <div class="controls">
         <button id="start-camera" class="btn-primary" onclick="startCamera()">
@@ -69,7 +69,9 @@
           RETAKE
         </button>
       </div>
-      <img class="instruction" src="/static/assets/button_take.png" alt="" />
+      <button id="extra-retake" class="instruction" onclick="capturePhoto()">
+        <img src="/static/assets/button_take.png" alt="Put your hands next to your head" />
+      </button>
     </div>
   </body>
 </html>
