@@ -157,7 +157,7 @@ function capturePhoto() {
     document.getElementById('retake').style.display = 'inline-block';
     document.getElementById('analyze').style.display = 'inline-block';
 
-    showStatus('Photo captured! Click "Analyze Style" to continue.', 'info');
+    showStatus('', '');
 }
 
 
