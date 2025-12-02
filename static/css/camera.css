@@ -103,6 +103,8 @@ canvas {
   display: none;
   z-index: 10;
   max-width: 80%;
+  font-size: 2.25rem;
+  font-weight: 500;
 }
 
 .status-info {
@@ -129,11 +131,12 @@ canvas {
 }
 
 .spinner {
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #3954cf;
+  border: .375rem solid #f3f3f3;
+  border-top: .375rem solid #3954cf;
   border-radius: 50%;
-  width: 30px;
-  height: 30px;
+  width: 5rem;
+  width: min(10vw, 5rem);
+  aspect-ratio: 1;
   animation: spin 1s linear infinite;
   margin: 0 auto 10px;
 }
