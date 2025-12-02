@@ -16,10 +16,6 @@ body {
   min-height: 100vh;
 }
 
-
-button.hidden{
-    display: none !important;
-}
 button.btn-transparent {
   background-color: transparent;
   text-transform: uppercase;
@@ -28,8 +24,7 @@ button.btn-transparent {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  background: white;
-  border-radius: 15px;
+  background: rgb(58, 48, 57);
   padding: 30px;
   position: relative;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
