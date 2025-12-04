@@ -31,14 +31,11 @@
         alt="Your outfit"
       />
 
-      <div class="styles-section">
-        <div class="styles-grid">
-          {% for style in styles %}
-          <button class="style-button" onclick="submitFeedback('{{ style }}')">
-            {{ style }}
-          </button>
-          {% endfor %}
-        </div>
+      <div class="styles-grid">
+        <h2>MY ACTUAL STYLE IS</h2>
+        {% for style in styles %}
+        <button class="style-button" onclick="submitFeedback('{{ style }}')">{{ style }}</button>
+        {% endfor %}
       </div>
 
       <div id="success-message">
