@@ -35,11 +35,11 @@
       <div id="camera-container">
         <canvas id="canvas"></canvas>
         <video id="video" autoplay playsinline></video>
-        <img id="preview" alt="Preview" />
+        <img class="imgtransition" id="preview" alt="Preview" />
       </div>
 
       <div id="status"></div>
-
+      <h2>Scanning <span>.</span><span>.</span><span>.</span></h2>
       <div class="controls">
         <button id="start-camera" class="btn-primary" onclick="startCamera()">
           Start Camera
@@ -70,7 +70,10 @@
         </button>
       </div>
       <button id="extra-retake" class="instruction" onclick="capturePhoto()">
-        <img src="/static/assets/button_take.png" alt="Put your hands next to your head" />
+        <img
+          src="/static/assets/button_take.png"
+          alt="Put your hands next to your head"
+        />
       </button>
     </div>
   </body>
