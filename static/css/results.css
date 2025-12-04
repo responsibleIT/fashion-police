@@ -13,11 +13,10 @@ h1.title {
   margin: unset;
   color: #f6f6f6;
   text-transform: uppercase;
-    font-size: clamp(2rem, 7.5vw, 10rem);
-
+  font-size: clamp(2rem, 7.5vw, 10rem);
 }
 
-h2.subtitle{
+h2.subtitle {
   color: #f6f6f6;
   font-size: clamp(1.75rem, 5vw, 7rem);
   text-transform: uppercase;
@@ -52,6 +51,8 @@ h2.subtitle{
   height: 100%;
   width: 100%;
   z-index: -1;
+  transform: scaleX(-1);
+  transform-origin: center;
 }
 
 .segmentation {
