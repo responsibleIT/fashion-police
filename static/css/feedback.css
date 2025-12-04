@@ -7,17 +7,37 @@
 }
 
 .styles-grid {
-  background: rgba(0, 0, 0, 1);
+  background: rgba(0, 0, 0, 80%);
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 0.75rem;
   transition: opacity 0.5s ease;
   position: absolute;
   left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
   width: 100%;
-  padding: 0 4rem;
+  padding: 4rem;
+  padding-block: 8rem;
+  max-height: 75vh;
+  overflow: auto;
+  color: #f6f6f6;
+  font-size: clamp(1.75rem, 4.5vw, 4rem);
+  line-height: 1.4;
+}
+
+.styles-grid > * {
+  font-size: inherit;
+  color: inherit;
+}
+
+.styles-grid h2 {
+  font-size: clamp(2rem, 7.5vw, 10rem);
+  text-align: center;
+  display: block;
+  width: 100%;
+  margin-bottom: 8rem;
+  color: fffb00;
 }
 
 .styles-grid:has(.style-button:disabled) {
@@ -26,10 +46,9 @@
 
 .style-button {
   padding: 15px 20px;
+  display: inline-block;
   background: transparent;
   border: transparent;
-  color: #f6f6f6;
-  font-size: clamp(3rem, 4.5vw, 5rem);
   cursor: pointer;
   transition: all 0.3s;
   text-align: left;
@@ -37,6 +56,14 @@
   text-decoration: underline;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  border-radius: unset;
+}
+
+.style-button::before {
+  content: "#";
+  /* adjust # to be the same size as the text optically */
+  font-size: calc(1em * 1.1);
+  line-height: 1;
 }
 
 .style-button:not(:disabled):active {
