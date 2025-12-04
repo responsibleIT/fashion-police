@@ -73,6 +73,6 @@ button {
   color: white;
 }
 
-img.transition {
+img.imgtransition {
   view-transition-name: capturedImage;
 }
