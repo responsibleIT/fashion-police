@@ -17,14 +17,15 @@
     <div class="container">
       <h1 class="title">CORRECT ME IF I'M WRONG</h1>
       <img
-        class="display-image"
+        class="display-image imgtransition"
         src="data:image/jpeg;base64,{{ image_data }}"
         alt="Your outfit"
       />
       <div class="results-grid">
+        <h2 class="subtitle">YOU ARE...</h2>
         <div class="predictions-section">
           <div class="top-prediction">
-            <h2 class="subtitle">{{ result.top_prediction.name }}</h2>
+            <h3 class="subtitle">{{ result.top_prediction.name }}</h3>
           </div>
           <button
             class="btn-primary btn btn-success"

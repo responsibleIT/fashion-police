@@ -359,7 +359,7 @@ async function analyzePhoto() {
     return;
   }
 
-  showStatus("Processing your style...", "processing", true);
+  showStatus("", "processing", true);
 
   document.getElementById("retake").disabled = true;
   document.getElementById("analyze").disabled = true;

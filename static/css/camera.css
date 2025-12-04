@@ -137,13 +137,14 @@ canvas {
 }
 
 .status-processing {
-  background: #feebc8;
-  color: #7c2d12;
+  background: white;
+  padding: 1rem;
+  border-radius: 50%;
 }
 
 .instruction {
   z-index: 10000;
-  width: calc(500px - clamp(0px, 20vw, 400px));
+  width: calc(600px - clamp(0px, 20vw, 400px));
   min-width: 200px;
   aspect-ratio: 1/1;
   padding: unset;

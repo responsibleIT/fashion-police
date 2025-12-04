@@ -16,11 +16,16 @@ h1.title {
   font-size: clamp(2rem, 7.5vw, 10rem);
 }
 
-h2.subtitle {
+.subtitle {
   color: #f6f6f6;
   font-size: clamp(1.75rem, 5vw, 7rem);
   text-transform: uppercase;
   text-align: center;
+}
+
+h2.subtitle {
+  font-size: clamp(2rem, 9.5vw, 12rem);
+  text-shadow: 0px 0px 20px black;
 }
 
 .container {
@@ -71,11 +76,6 @@ h2.subtitle {
 
 .top-prediction {
   display: inline-block;
-}
-
-.top-prediction h3 {
-  color: #42ffa0;
-  font-size: clamp(1.5rem, 4vw, 2rem);
 }
 
 .top-prediction p {
