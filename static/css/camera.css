@@ -125,7 +125,10 @@ canvas {
 
 .instruction {
   z-index: 10000;
-  width: 40%;
+  width: calc(500px - clamp(0px, 20vw, 400px));
+  min-width: 200px;
+  aspect-ratio: 1/1;
+  padding: unset;
   position: fixed;
   bottom: 5%;
   left: 50%;
@@ -138,6 +141,7 @@ canvas {
 }
 
 .instruction img {
+  width: 100%;
   animation: pulse 6s 1s ease infinite;
 }
 
